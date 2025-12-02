@@ -1,6 +1,15 @@
+# Dependency directories
 node_modules/
 
-.env
-firebase-debug.log
-
+# Build output
 dist/
+
+# Environment variables (Secrets)
+.env
+
+# Firebase cache (Temporary files)
+.firebase/
+
+# OS junk
+.DS_Store
+Thumbs.db
