@@ -1,17 +1,24 @@
-import QRCode from "qrcode";
+import QRCode from "qrcode"
 
-export const generateQRCode = async (canvasEl, text, logoSource) => {
+export const generateQRCode = async (
+  canvasEl: HTMLCanvasElement, 
+  text: string, 
+  color: string = "#000000",
+  logoSource?: string | File | Blob | null
+) => {
+  if (!text) return;
+
   try {
     const ctx = canvasEl.getContext("2d");
+    if (!ctx) return;
 
     // 1. Generate QR with HIGH Error Correction
-    // This makes the QR code denser but "stronger" against logos covering it.
     await QRCode.toCanvas(canvasEl, text, {
       width: 300,
       margin: 2,
-      errorCorrectionLevel: "H", // <--- CRITICAL FIX (Was 'M' or default)
+      errorCorrectionLevel: "H",
       color: {
-        dark: "#000000",
+        dark: color,
         light: "#ffffff",
       },
     });
@@ -19,22 +26,22 @@ export const generateQRCode = async (canvasEl, text, logoSource) => {
     // 2. Handle Logo
     if (logoSource) {
       const img = new Image();
+      // Important for avoiding "tainted canvas" errors if loading from external URLs
       img.crossOrigin = "anonymous";
 
-      let url;
+      let url = "";
       let isObjectUrl = false;
 
       // Handle File vs Base64 String
       if (logoSource instanceof File || logoSource instanceof Blob) {
         url = URL.createObjectURL(logoSource);
         isObjectUrl = true;
-      } else {
+      } else if (typeof logoSource === 'string') {
         url = logoSource;
       }
 
       img.onload = () => {
-        // Calculate safe logo size (Max 20% of QR width)
-        // On a 300px canvas, this is 60px.
+        // Calculate safe logo size (Max 25% of QR width)
         const canvasWidth = canvasEl.width;
         const maxLogoSize = canvasWidth * 0.25;
 
@@ -42,9 +49,7 @@ export const generateQRCode = async (canvasEl, text, logoSource) => {
         const y = (canvasWidth - maxLogoSize) / 2;
 
         // 3. Draw a "Quiet Zone" (White Background) behind the logo
-        // This prevents dark logos from merging with dark QR dots
         ctx.fillStyle = "#ffffff";
-        // Make the white box slightly larger than the logo (padding)
         const padding = 6;
         ctx.fillRect(x - padding / 2, y - padding / 2, maxLogoSize + padding, maxLogoSize + padding);
 
@@ -57,25 +62,26 @@ export const generateQRCode = async (canvasEl, text, logoSource) => {
       img.src = url;
     }
   } catch (err) {
-    console.error(err);
+    console.error("QR Generation failed", err);
   }
 };
+
 // Helper to trigger download
-export const downloadCanvas = (canvasEl) => {
+export const downloadCanvas = (canvasEl: HTMLCanvasElement | null) => {
+  if (!canvasEl) return;
   const link = document.createElement("a");
   link.download = `qrcode-${Date.now()}.png`;
-  link.href = canvasEl.toDataURL();
+  link.href = canvasEl.toDataURL("image/png");
   link.click();
 };
 
-export const resizeImage = (file, maxDimension = 150) => {
+export const resizeImage = (file: File, maxDimension = 150): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = (e) => {
       const img = new Image();
       img.onload = () => {
-        // 1. Calculate Size (Keep it small! 100px is perfect for QR logos)
         let width = img.width;
         let height = img.height;
 
@@ -96,21 +102,23 @@ export const resizeImage = (file, maxDimension = 150) => {
         canvas.height = height;
 
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // 2. Return Base64 String instead of Blob
-        // usage: "data:image/png;base64,iVBORw0KGgoAAA..."
-        const dataUrl = canvas.toDataURL("image/png", 0.8);
-        resolve(dataUrl);
+        if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Return Base64 String
+            const dataUrl = canvas.toDataURL("image/png", 0.9);
+            resolve(dataUrl);
+        } else {
+            reject(new Error("Canvas context not available"));
+        }
       };
 
       img.onerror = reject;
-      img.src = e.target.result;
+      if (e.target?.result) {
+        img.src = e.target.result as string;
+      }
     };
 
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
 };
-
-// ... keep generateQRCode and downloadCanvas as is
