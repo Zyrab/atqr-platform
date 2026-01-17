@@ -1,21 +1,22 @@
-import { Zap, Loader2, QrCode } from "lucide-react";
+import { Zap, Loader2, QrCode, Edit } from "lucide-react";
 import { useState } from "react";
 import { User } from "firebase/auth";
-import Button from "../ui/button";
+import { Button } from "../ui/button";
 import QRCard from "../ui/qr-card";
-import { useQRCodes } from "@/hooks/use-qr-codes";
+import { useQRCodes, QRCodeData } from "@/hooks/use-qr-codes";
 
 interface DashboardProps {
   user: User | null;
-  setView: (view: string) => void;
+  setView: (view: string, data?: any) => void;
 }
 
 export default function Dashboard({ user, setView }: DashboardProps) {
-  // Use our custom hook for all data logic
   const { codes, loading, removeCode } = useQRCodes(user);
-
-  // We'll keep the plan/credits logic simple for now
   const [userData] = useState({ credits: 10, plan: "free" });
+
+  const handleEdit = (code: QRCodeData) => {
+    setView("create", code);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -50,14 +51,6 @@ export default function Dashboard({ user, setView }: DashboardProps) {
             style={{ width: `${Math.min((codes.length / 10) * 100, 100)}%` }}
           />
         </div>
-        {codes.length >= 10 && userData.plan === "free" && (
-          <div className="flex items-center justify-between bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-xs px-3 py-2 rounded mt-2">
-            <span>Limit reached. Upgrade to generate more.</span>
-            <span className="font-bold cursor-pointer underline" onClick={() => setView("pricing")}>
-              Upgrade
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Code Grid */}
@@ -75,15 +68,26 @@ export default function Dashboard({ user, setView }: DashboardProps) {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {codes.map((code) => (
-            <QRCard
-              key={code.id}
-              id={code.id}
-              text={code.text}
-              logoBase64={code.logoBase64}
-              color={code.color}
-              createdAt={code.createdAt}
-              onDelete={removeCode}
-            />
+            <div key={code.id} className="relative group">
+              <QRCard
+                id={code.id}
+                text={code.text}
+                logoBase64={code.logoBase64}
+                color={code.color}
+                style={code.style}
+                logoStyle={code.logoStyle}
+                createdAt={code.createdAt}
+                onDelete={removeCode}
+              />
+              {/* Floating Edit Button */}
+              <button
+                onClick={() => handleEdit(code)}
+                className="absolute top-3 right-3 p-2 bg-white dark:bg-slate-800 shadow-md rounded-full text-slate-500 hover:text-teal-600 dark:text-slate-400 dark:hover:text-teal-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                title="Edit Style"
+              >
+                <Edit size={14} />
+              </button>
+            </div>
           ))}
         </div>
       )}

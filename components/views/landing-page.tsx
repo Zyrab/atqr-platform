@@ -2,8 +2,8 @@ import { useState } from "react";
 import { QrCode, Download } from "lucide-react";
 import { User } from "firebase/auth";
 import AdSpace from "../ui/ad-space";
-import Button from "../ui/button";
-import Input from "../ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface LandingPageProps {
   setView: (view: string) => void;

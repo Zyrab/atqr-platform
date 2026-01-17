@@ -1,26 +1,150 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* 1. UPDATE FONT HERE */
+  --font-mono: var(--font-geist-mono); /* Keep mono or change if you have one */
+
+  /* Map colors to variables */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Radius variables mapped */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* --- LIGHT THEME --- */
+:root {
+  /* LYRA STYLE: Boxy/Sharp */
+  --radius: 0rem;
+
+  /* Base: Floral White */
+  --background: #fffcf2;
+  --foreground: #252422; /* Carbon Black text */
+
+  /* Card: Floral White */
+  --card: #fffcf2;
+  --card-foreground: #252422;
+
+  /* Popover */
+  --popover: #fffcf2;
+  --popover-foreground: #252422;
+
+  /* Primary: Spicy Paprika */
+  --primary: #eb5e28;
+  --primary-foreground: #fffcf2; /* White text on orange */
+
+  /* Secondary: Silver */
+  --secondary: #ccc5b9;
+  --secondary-foreground: #252422;
+
+  /* Muted: Light Silver */
+  --muted: #e6e2dd;
+  --muted-foreground: #403d39;
+
+  /* Accent: Silver (Hovers) */
+  --accent: #fffcf2;
+  --accent-foreground: #252422;
+
+  /* Destructive */
+  --destructive: #ef4444;
+  --destructive-foreground: #fffcf2;
+
+  /* Borders & Inputs: Silver */
+  --border: #ccc5b9;
+  --input: #ccc5b9;
+
+  /* Ring: Spicy Paprika */
+  --ring: #eb5e28;
+
+  /* Charts (Standard placeholders) */
+  --chart-1: #eb5e28;
+  --chart-2: #252422;
+  --chart-3: #403d39;
+  --chart-4: #ccc5b9;
+  --chart-5: #e6e2dd;
+}
+
+/* --- DARK THEME --- */
+.dark {
+  /* Base: Carbon Black */
+  --background: #252422;
+  --foreground: #fffcf2; /* Floral White text */
+
+  /* Card: Carbon Black */
+  --card: #252422;
+  --card-foreground: #fffcf2;
+
+  /* Popover */
+  --popover: #252422;
+  --popover-foreground: #fffcf2;
+
+  /* Primary: Spicy Paprika */
+  --primary: #eb5e28;
+  --primary-foreground: #fffcf2;
+
+  /* Secondary: Charcoal Brown */
+  --secondary: #403d39;
+  --secondary-foreground: #fffcf2;
+
+  /* Muted: Charcoal Brown */
+  --muted: #403d39;
+  --muted-foreground: #ccc5b9;
+
+  /* Accent: Charcoal Brown (Hovers) */
+  --accent: #252422;
+  --accent-foreground: #fffcf2;
+
+  /* Destructive */
+  --destructive: #7f1d1d;
+  --destructive-foreground: #fffcf2;
+
+  /* Borders & Inputs: Charcoal Brown */
+  --border: #403d39;
+  --input: #403d39;
+
+  /* Ring: Spicy Paprika */
+  --ring: #eb5e28;
+
+  --chart-1: #eb5e28;
+  --chart-2: #fffcf2;
+  --chart-3: #ccc5b9;
+  --chart-4: #403d39;
+  --chart-5: #252422;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
 }

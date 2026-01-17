@@ -1,7 +1,7 @@
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { useState } from "react";
-import Button from "../ui/button";
-import Input from "../ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { auth, loginGoogle } from "../../lib/firebase";
 
 interface AuthFormProps {

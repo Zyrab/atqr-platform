@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { User } from "firebase/auth";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db, deleteQrCode } from "@/lib/firebase";
+import { QRStyle, LogoStyle } from "@/lib/qr-utils";
 
+// Define the full shape of the stored data
 export interface QRCodeData {
   id: string;
   uid: string;
@@ -10,6 +12,9 @@ export interface QRCodeData {
   logoBase64?: string | null;
   createdAt: string;
   color?: string;
+  style?: QRStyle;
+  logoStyle?: LogoStyle;
+  name?: string;
 }
 
 export function useQRCodes(user: User | null) {
