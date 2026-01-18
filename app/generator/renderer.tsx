@@ -22,11 +22,10 @@ const isDarkAt = (matrix: QRCodeMatrix, x: number, y: number, size: number, logo
   return true;
 };
 
-// --- 4. MAIN COMPONENT ---
-
 interface QRCodeRendererProps {
   matrix: QRCodeMatrix;
   size?: number;
+  svgRef: React.RefObject<SVGSVGElement | null>;
   dotType?: DotType;
   eyeFrame?: EyeFrameType;
   eyeBall?: EyeBallType;
@@ -40,6 +39,7 @@ interface QRCodeRendererProps {
 const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({
   matrix = [],
   size = 300,
+  svgRef = null,
   dotType = "square",
   eyeFrame = "square",
   eyeBall = "square",
@@ -54,8 +54,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({
 
   const dataPath = useMemo(() => {
     if (!gridSize) return null;
-    const elements: JSX.Element[] = [];
-
+    const elements: React.ReactNode[] = [];
     matrix.forEach((row, y) => {
       row.forEach((isDark, x) => {
         if (!isDark) return;
@@ -90,6 +89,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({
     <div className="relative flex items-center justify-center">
       <div className="absolute inset-0" style={{ backgroundColor: bgColor }} />
       <svg
+        ref={svgRef}
         width="100%"
         height="100%"
         viewBox={`0 0 ${gridSize} ${gridSize}`}
@@ -117,4 +117,4 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({
   );
 };
 
-export default QRCodeRenderer;
+export default React.memo(QRCodeRenderer);
