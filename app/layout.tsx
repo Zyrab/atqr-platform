@@ -20,7 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${fontSans.variable} font-sans antialiased bg-background text-foreground`}>
         <AuthProvider>
           <Header />
-          <main className="min-h-[80vh]">{children}</main>
+          <main className="flex flex-col min-h-[80vh] mt-12 gap-24">{children}</main>
 
           <footer className="bg-muted/30 border-t border-border py-8 mt-12">
             <div className="container mx-auto px-4 text-center">
