@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 // 1. RadioGroup: Removed forced 'flex-row' so you can use Grid
 function RadioGroup({ className, ...props }: React.ComponentProps<typeof RadioGroupPrimitive.Root>) {
-  return <RadioGroupPrimitive.Root className={cn("flex flex-row gap-2", className)} {...props} />;
+  return <RadioGroupPrimitive.Root className={cn("flex flex-row flex-wrap gap-2", className)} {...props} />;
 }
 
 // 2. Standard Radio Item (Small circle)
@@ -16,7 +16,7 @@ function RadioGroupItem({ className, ...props }: React.ComponentProps<typeof Rad
       data-slot="radio-group-item"
       className={cn(
         "aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-        className
+        className,
       )}
       {...props}
     >
@@ -49,12 +49,11 @@ const radioCardVariants = cva(
       shape: "default",
       size: "default",
     },
-  }
+  },
 );
 
 interface RadioCardProps
-  extends React.ComponentProps<typeof RadioGroupPrimitive.Item>,
-    VariantProps<typeof radioCardVariants> {
+  extends React.ComponentProps<typeof RadioGroupPrimitive.Item>, VariantProps<typeof radioCardVariants> {
   children?: React.ReactNode;
 }
 
