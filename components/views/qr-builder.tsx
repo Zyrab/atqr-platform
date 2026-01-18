@@ -47,7 +47,7 @@ export default function QRBuilder({ user, setView, initialData }: QRBuilderProps
           style: formData.style,
           logoStyle: formData.logoStyle,
         },
-        formData.logo
+        formData.logo,
       );
     }
   }, [formData]);
@@ -226,7 +226,7 @@ export default function QRBuilder({ user, setView, initialData }: QRBuilderProps
             <div className="bg-white p-4 rounded-lg shadow-lg relative z-10">
               <div className={`${!formData.url ? "hidden" : "block"}`}>
                 {/* The canvas is drawn by the hook, we just provide the ref */}
-                <canvas ref={canvasRef} className="w-full h-full max-w-[200px] max-h-[200px]" />
+                <canvas ref={canvasRef} className="w-full h-full max-w-50 max-h-50" />
               </div>
 
               {!formData.url && (
