@@ -18,7 +18,7 @@ export default function PricingSection() {
             <HeaderGroup tag="h3" size="sm" header={header} />
             <ul className="w-full h-full">
               {content.map((item) => (
-                <li className="flex gap-1 items-center mt-1">
+                <li key={item} className="flex gap-1 items-center mt-1">
                   <CircleCheck color="#5CE639" size={20} />
                   <p className="text-foreground-muted text-sm">{item}</p>
                 </li>
