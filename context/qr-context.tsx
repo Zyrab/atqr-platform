@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/auth-context"; // Assumes you have this from your auth setup
-import { fetchHistory, deleteQrCode as firebaseDelete, updateQrCode as firebaseUpdate } from "@/lib/firebase";
+import { fetchHistory, deleteQrCode as deleteQrCode, updateQrCode, saveToDashboard } from "@/lib/firebase";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { QRDocument, QRData } from "@/types/qr";
 // Define the shape of a QR Code object (matching your Firestore structure)
@@ -14,6 +15,7 @@ interface QRContextType {
   refreshQRCodes: () => Promise<void>;
   deleteQr: (id: string) => Promise<void>;
   updateQr: (id: string, data: Partial<QRData>) => Promise<void>;
+  saveQr: (data: QRData) => Promise<void>;
   getQrById: (id: string) => QRData | undefined;
 }
 
@@ -21,11 +23,12 @@ const QRContext = createContext<QRContextType | undefined>(undefined);
 
 export function QRProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const router = useRouter();
+
   const [qrCodes, setQrCodes] = useState<QRDocument[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Fetch Logic
   const loadData = useCallback(async () => {
     if (!user) {
       setQrCodes([]);
@@ -36,8 +39,6 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     try {
       const data = await fetchHistory(user);
-      // Ensure the data matches our type. fetchHistory returns `any[]` usually,
-      // so we cast it or you can add stricter typing in firebase.ts
       setQrCodes(data as QRDocument[]);
     } catch (err: any) {
       console.error("Failed to load QR codes", err);
@@ -47,45 +48,54 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  // Automatically load data when user logs in
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // 2. Delete Logic
   const deleteQr = async (id: string) => {
-    // Optimistic update: Remove from UI immediately
     const previousCodes = [...qrCodes];
     setQrCodes((prev) => prev.filter((item) => item.id !== id));
 
     try {
-      await firebaseDelete(id);
+      await deleteQrCode(id);
     } catch (err) {
-      // Revert on failure
       console.error("Delete failed", err);
       setQrCodes(previousCodes);
       throw err;
     }
   };
 
-  // 3. Update Logic
   const updateQr = async (id: string, updates: Partial<QRData>) => {
-    // Optimistic update
     setQrCodes((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
 
     try {
-      await firebaseUpdate(id, updates);
+      await updateQrCode(id, updates);
+      router.push("/dashboard");
     } catch (err) {
       console.error("Update failed", err);
-      // We might want to trigger a refresh here if strict consistency is needed,
-      // or revert if you implement a history stack.
-      // For now, reloading from server to ensure sync is safest on error.
       loadData();
       throw err;
     }
   };
 
-  // 4. Helper to find a single QR (useful for the Generator/Edit page)
+  const saveQr = async (qrData: QRData) => {
+    if (!user) {
+      router.push("/auth?mode=login");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await saveToDashboard(user, qrData);
+      loadData();
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      alert("Error saving. If you used a custom logo, it might be too large.");
+    } finally {
+      setLoading(false);
+    }
+  };
   const getQrById = (id: string) => {
     return qrCodes.find((item) => item.id === id);
   };
@@ -100,6 +110,7 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
         deleteQr,
         updateQr,
         getQrById,
+        saveQr,
       }}
     >
       {children}
