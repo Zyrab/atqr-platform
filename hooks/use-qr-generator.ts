@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import QRCode from "qrcode";
+import type { QRCodeMatrix, QRContent } from '@/types/qr';
+
 
 // Debounce helper
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+function useDebounce<QRContent>(value: QRContent, delay: number): QRContent {
+  const [debouncedValue, setDebouncedValue] = useState<QRContent>(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -17,15 +19,28 @@ function useDebounce<T>(value: T, delay: number): T {
 
   return debouncedValue;
 }
+function getQRString(content: QRContent): string | null {
+  switch (content.type) {
+    case 'url':
+      return content.url.trim() || null;
+    case 'text':
+      return content.text.trim() || null;
+    case 'wifi':
+      if (!content.ssid.trim()) return null; // SSID is required
+      return `WIFI:T:WPA;S:${content.ssid};P:${content.password};;`;
+    default:
+      return null;
+  }
+}
+
+
 
 export const useQRCodeGenerator = (
-  content: string,
+  content: QRContent | null,
   options: { errorCorrectionLevel: "L" | "M" | "Q" | "H" } = { errorCorrectionLevel: "H" },
 ) => {
-  const [matrix, setMatrix] = useState<(number | boolean)[][]>([]);
+  const [matrix, setMatrix] = useState<QRCodeMatrix>([]);
 
-  // 1. Debounce the input content.
-  // This means the heavy QR generation only happens 300ms AFTER you stop typing.
   const debouncedContent = useDebounce(content, 500);
 
   useEffect(() => {
@@ -36,16 +51,20 @@ export const useQRCodeGenerator = (
 
     const generate = async () => {
       try {
-        const qrRaw = QRCode.create(debouncedContent, options);
+        const qrString = getQRString(debouncedContent);
+        if (!qrString) {
+        setMatrix([]);
+        return;
+      }
+        const qrRaw = QRCode.create(qrString, options);
         const size = qrRaw.modules.size;
         const data = qrRaw.modules.data;
 
-        const newMatrix = [];
+        const newMatrix: boolean[][] = [];
         for (let y = 0; y < size; y++) {
-          const row = [];
+          const row: boolean[] = [];
           for (let x = 0; x < size; x++) {
-            const idx = y * size + x;
-            row.push(data[idx] ? 1 : 0);
+            row.push(data[y * size + x] === 1);
           }
           newMatrix.push(row);
         }
