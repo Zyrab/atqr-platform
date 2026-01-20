@@ -17,6 +17,7 @@ import {
   ChartLine,
   Type,
   Wifi,
+  Text,
 } from "lucide-react";
 
 // UI Components
@@ -71,7 +72,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate }: D
   // Determine if there is anything typed
   const isContentFilled = contentCheckers[item.content.type](item.content);
 
-  const { matrix } = useQRCodeGenerator(item.content);
+  const { matrix } = useQRCodeGenerator(item.content, Boolean(item.design.logo));
   const handleDownload = () => {
     if (!isContentFilled) return;
     const fileName = item.name || "qr-code";
@@ -83,15 +84,25 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate }: D
   function renderContentBadges(content: QRDocument["content"]) {
     switch (content.type) {
       case "url":
-        return <Badge variant="ghost">{content.url}</Badge>;
+        return (
+          <Badge variant="ghost">
+            <CornerDownRight />
+            {content.url.slice(0, 25) + "…"}
+          </Badge>
+        );
       case "text":
-        return <Badge variant="ghost">{content.text}</Badge>;
+        return (
+          <Badge variant="ghost">
+            <Text />
+            {content.text.slice(0, 25) + "…"}
+          </Badge>
+        );
       case "wifi":
         return (
-          <>
-            <Badge variant="ghost">SSID: {content.ssid || "—"}</Badge>
-            <Badge variant="ghost">Password: {content.password || "—"}</Badge>
-          </>
+          <Badge variant="ghost">
+            <Wifi />
+            SSID: {content.ssid || "—"}, Password: {content.password || "—"}
+          </Badge>
         );
       default:
         return null;
