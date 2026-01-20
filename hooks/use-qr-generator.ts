@@ -1,24 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import QRCode from "qrcode";
 import type { QRCodeMatrix, QRContent } from '@/types/qr';
+import { chooseErrorCorrection } from "@/lib/error-correction-level";
 
 
 // Debounce helper
-function useDebounce<QRContent>(value: QRContent, delay: number): QRContent {
-  const [debouncedValue, setDebouncedValue] = useState<QRContent>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
+function useDebouncedValue<T>(value: T, delay: number): T {
+  return useMemo(() => value, [value, delay]);
 }
+
 function getQRString(content: QRContent): string | null {
   switch (content.type) {
     case 'url':
@@ -36,46 +26,35 @@ function getQRString(content: QRContent): string | null {
 
 
 export const useQRCodeGenerator = (
-  content: QRContent | null,
-  options: { errorCorrectionLevel: "L" | "M" | "Q" | "H" } = { errorCorrectionLevel: "H" },
+  content: QRContent,
+  hasLogo: boolean,
+  debounceMs = 800
 ) => {
-  const [matrix, setMatrix] = useState<QRCodeMatrix>([]);
+  const debouncedContent = useDebouncedValue(content, debounceMs);
+  
+  const matrix: QRCodeMatrix = useMemo(() => {
+    if (!debouncedContent) return [];
+    const ecLevel = chooseErrorCorrection({ content, hasLogo, logoScale: 0.15, });
+    console.log(ecLevel)
+    
+    const qrString = getQRString(debouncedContent);
+    if (!qrString) return [];
 
-  const debouncedContent = useDebounce(content, 500);
+    try {
+      
+      const qrRaw = QRCode.create(qrString, { errorCorrectionLevel: ecLevel } );
+      const size = qrRaw.modules.size;
+      const data = qrRaw.modules.data;
 
-  useEffect(() => {
-    if (!debouncedContent) {
-      setMatrix([]);
-      return;
+      const result: boolean[][] = Array.from({ length: size }, (_, y) =>
+        Array.from({ length: size }, (_, x) => data[y * size + x] === 1)
+      );
+
+      return result;
+    } catch {
+      return [];
     }
-
-    const generate = async () => {
-      try {
-        const qrString = getQRString(debouncedContent);
-        if (!qrString) {
-        setMatrix([]);
-        return;
-      }
-        const qrRaw = QRCode.create(qrString, options);
-        const size = qrRaw.modules.size;
-        const data = qrRaw.modules.data;
-
-        const newMatrix: boolean[][] = [];
-        for (let y = 0; y < size; y++) {
-          const row: boolean[] = [];
-          for (let x = 0; x < size; x++) {
-            row.push(data[y * size + x] === 1);
-          }
-          newMatrix.push(row);
-        }
-        setMatrix(newMatrix);
-      } catch (err) {
-        console.error("QR Generation failed", err);
-      }
-    };
-
-    generate();
-  }, [debouncedContent, options.errorCorrectionLevel]);
+  }, [debouncedContent, hasLogo]);
 
   return { matrix };
 };
