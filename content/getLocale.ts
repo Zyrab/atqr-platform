@@ -1,16 +1,20 @@
 import { landing as enLanding } from "./en/landing";
 import { landing as kaLanding } from "./en/landing";
 import { generator as enGenerator } from "./en/generator";
+import { generator as kaGenerator } from "./ka/generator";
+import { dashboard as enDashboard } from "./en/dashboard";
 
 const en = {
   landing: enLanding,
-  generator: enGenerator
+  generator: enGenerator,
+  dashboard:enDashboard,
 }
 type TranslationSchema = typeof en;
 
 const ka: TranslationSchema = {
   landing: kaLanding,
-  generator: enGenerator
+  generator: kaGenerator,
+  dashboard:enDashboard,
 };
 
 const translations: Record<Locale, TranslationSchema> = { en, ka };

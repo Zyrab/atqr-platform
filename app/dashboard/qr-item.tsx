@@ -41,6 +41,7 @@ interface DashboardItemProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   onDuplicate: (item: QRDocument) => void;
+  t: any;
 }
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -48,7 +49,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
 });
 
-export default function DashboardItem({ item, onEdit, onDelete, onDuplicate }: DashboardItemProps) {
+export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }: DashboardItemProps) {
   // --- Local State ---
   const [downloadSize, setDownloadSize] = useState(1000);
   const [downloadFormat, setDownloadFormat] = useState<"png" | "jpeg" | "svg">("png");
@@ -120,12 +121,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate }: D
       {/* 1. Visual Preview Area */}
       <div className="gap-8 flex flex-row">
         <div className="flex flex-col gap-2 md:flex-row md:gap-5">
-          <div
-            className="w-30 h-30 p-2 transition-transform duration-300 group-hover:scale-105"
-            style={{
-              backgroundColor: item.design.bgColor === "transparent" ? "#ffffff" : item.design.bgColor,
-            }}
-          >
+          <div className="w-30 h-30 transition-transform duration-300 group-hover:scale-105">
             <QRCodeRenderer matrix={matrix} svgRef={svgRef} size={200} design={item.design} />
           </div>
           <div className="flex flex-row md:flex-col  md:pt-2 justify-between md:justify-start gap-3">
@@ -240,7 +236,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate }: D
           />
           <Button onClick={handleDownload} disabled={isDownloading} size="lg">
             {isDownloading ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Download className="w-4 h-4 mr-2" />}
-            Download QR
+            {t.action.label}
           </Button>
         </div>
       </div>

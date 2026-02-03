@@ -34,7 +34,7 @@ type HeaderType = {
 export default function Generator({ header, locale = "en" }: HeaderType) {
   const { user } = useAuth();
   const t = getLocale(locale, "generator");
-  const [downloadSize, setDownloadSize] = useState(2000);
+  const [downloadSize, setDownloadSize] = useState(1000);
   const [downloadFormat, setDownloadFormat] = useState<"png" | "jpeg" | "svg">("png");
 
   const isEditing = useRef<boolean>(false);
@@ -210,15 +210,25 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
             ))}
           </RadioGroup>
 
-          <Button onClick={handleDownload} disabled={!isContentFilled || isDownloading} variant="default">
-            {isDownloading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Download className="mr-2 h-4 w-4" />}
-            Download
-          </Button>
-          {/* Save Action */}
-          <Button size="lg" variant="outline" disabled={!isContentFilled || loading} onClick={handleSaveQr}>
-            {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
-            {user ? "Save to Dashboard" : "Sign in to Save"}
-          </Button>
+          <div className="w-full flex flex-col gap-1">
+            <Button onClick={handleDownload} disabled={!isContentFilled || isDownloading} variant="default">
+              {isDownloading ? (
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {t.download.title}
+            </Button>
+            <p className="text-muted-foreground text-xs max-w-240 text-center">{t.download.note}</p>
+          </div>
+          <div className="w-full flex flex-col gap-1">
+            <p className="text-muted-foreground text-xs max-w-240 text-center">{t.save.note}</p>
+            <Button size="lg" variant="outline" disabled={!isContentFilled || loading} onClick={handleSaveQr}>
+              {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              {user ? t.save.title : t.signin.title}
+            </Button>
+            <p className="text-muted-foreground text-sm max-w-240 text-center">{t.signin.note}</p>
+          </div>
         </Card>
       </div>
       <p className="text-muted-foreground text-sm max-w-240 text-center">{t.footer}</p>

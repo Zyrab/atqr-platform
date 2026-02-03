@@ -16,11 +16,12 @@ import { useQR } from "@/context/qr-context";
 import { Card } from "@/components/ui/card";
 import Section from "@/components/layout/section";
 import { HeaderGroup } from "@/components/elements/heading-group";
+import { getLocale } from "@/content/getLocale";
 
-export default function DashboardGrid() {
+export default function DashboardGrid({ locale = "en" }: { locale?: "en" | "ka" }) {
   const router = useRouter();
   const { qrCodes, deleteQr, loading } = useQR();
-
+  const t = getLocale(locale, "dashboard");
   // --- Local State ---
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name">("newest");
@@ -90,8 +91,8 @@ export default function DashboardGrid() {
       <div className="flex flex-col gap-4 w-full max-w-5xl">
         <div className="flex flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">My QR Codes</h1>
-            <p className="text-muted-foreground text-sm">Manage your saved QR codes.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">{t.title}</h1>
+            <p className="text-muted-foreground text-sm">{t.subtitle}</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -101,25 +102,25 @@ export default function DashboardGrid() {
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
+                <SelectItem value="newest">{t.filter[0]}</SelectItem>
+                <SelectItem value="oldest">{t.filter[1]}</SelectItem>
+                <SelectItem value="name">{t.filter[2]}</SelectItem>
               </SelectContent>
             </Select>
 
             <Button onClick={handleCreateNew} disabled={isLimitReached} size="sm">
               <Plus className="w-5 h-5 md:mr-2" />
-              <span className="hidden md:inline">Create New</span>
+              <span className="hidden md:inline">{t.cta.label}</span>
             </Button>
           </div>
         </div>
         <Card size="sm" width="auto">
           <div className="flex justify-between items-center mb-2 text-sm">
             <span className="font-medium flex items-center gap-2">
-              {isLimitReached ? "Static QR code limit reached" : "Static QR codes used"}
+              {isLimitReached ? t.limit_reached : t.limit_under}
             </span>
             <span className="text-muted-foreground">
-              {usedCount} / {MAX_FREE_QRS} QR Codes
+              {usedCount} / {MAX_FREE_QRS} {t.qr_codes}
             </span>
           </div>
           <Progress value={usagePercentage} className="h-2" />
@@ -139,14 +140,10 @@ export default function DashboardGrid() {
           // --- EMPTY STATE ---
           <Card width="auto" className="border-2 border-dashed items-center">
             <QrCode className="w-15 h-15 text-muted-foreground" />
-            <HeaderGroup
-              tag="h2"
-              header="No saved QR codes yet"
-              subheading="Save up to 10 static QR codes here once you create them."
-            >
+            <HeaderGroup tag="h2" header={t.empty.title} subheading={t.empty.subtitle}>
               <Button onClick={handleCreateNew}>
                 <Plus />
-                Create QR Code
+                {t.empty.button}
               </Button>
             </HeaderGroup>
           </Card>
@@ -154,7 +151,13 @@ export default function DashboardGrid() {
           <>
             {filteredItems.map((item) => (
               <div key={item.id}>
-                <DashboardItem item={item} onEdit={handleEdit} onDelete={deleteQr} onDuplicate={handleDuplicate} />
+                <DashboardItem
+                  item={item}
+                  onEdit={handleEdit}
+                  onDelete={deleteQr}
+                  onDuplicate={handleDuplicate}
+                  t={t}
+                />
               </div>
             ))}
           </>
