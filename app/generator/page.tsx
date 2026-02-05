@@ -32,11 +32,10 @@ type HeaderType = {
   locale?: "en" | "ka";
 };
 export default function Generator({ header, locale = "en" }: HeaderType) {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const t = getLocale(locale, "generator");
   const [downloadSize, setDownloadSize] = useState(1000);
   const [downloadFormat, setDownloadFormat] = useState<"png" | "jpeg" | "svg">("png");
-
   const isEditing = useRef<boolean>(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -62,7 +61,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
 
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const { getQrById, updateQr, saveQr, loading } = useQR();
+  const { getQrById, qrCodes, updateQr, saveQr, loading } = useQR();
 
   useEffect(() => {
     if (id) {
@@ -117,14 +116,6 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     }
   };
 
-  const handleSaveQr = async () => {
-    if (isEditing.current) {
-      if (id) await updateQr(id, qrData);
-    } else {
-      await saveQr(qrData);
-    }
-  };
-
   const onContentChange = (field: string, value: string) => {
     setDraftContent((prev) => ({ ...prev, [field]: value }));
   };
@@ -144,6 +135,24 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
 
   const isContentFilled = contentCheckers[qrData.content.type](qrData.content);
 
+  const isFreeUser = userData?.plan === "free";
+  const qrLimit = userData?.qrLimit ?? 0;
+  const qrCount = qrCodes.length;
+
+  const hasReachedLimit = (user && isFreeUser && !isEditing.current && qrCount >= qrLimit) || false;
+
+  const handleSaveQr = async () => {
+    if (hasReachedLimit) {
+      alert("Free plan limit reached. Upgrade to save more QR codes.");
+      return;
+    }
+
+    if (isEditing.current) {
+      if (id) await updateQr(id, qrData);
+    } else {
+      await saveQr(qrData);
+    }
+  };
   return (
     <Section>
       {header ? <HeaderGroup tag="h1" header={header.title} subheading={header.subtitle} /> : null}
@@ -222,12 +231,18 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
             <p className="text-muted-foreground text-xs max-w-240 text-center">{t.download.note}</p>
           </div>
           <div className="w-full flex flex-col gap-1">
-            <p className="text-muted-foreground text-xs max-w-240 text-center">{t.save.note}</p>
-            <Button size="lg" variant="outline" disabled={!isContentFilled || loading} onClick={handleSaveQr}>
+            <Button
+              size="lg"
+              variant="outline"
+              disabled={!isContentFilled || loading || hasReachedLimit}
+              onClick={handleSaveQr}
+            >
               {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
               {user ? t.save.title : t.signin.title}
             </Button>
-            <p className="text-muted-foreground text-sm max-w-240 text-center">{t.signin.note}</p>
+            <p className="text-muted-foreground text-xs max-w-240 text-center">
+              {hasReachedLimit ? t.save.limit_reached : user ? t.save.note : t.signin.note}
+            </p>
           </div>
         </Card>
       </div>

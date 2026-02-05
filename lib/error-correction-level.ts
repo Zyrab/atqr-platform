@@ -5,15 +5,11 @@ type ErrorCorrection = "L" | "M" | "Q" | "H";
 type DecideECInput = {
   content: QRContent;
   hasLogo: boolean;
-  logoScale?: number; // 0–1 (relative width of QR, default ~0.25)
+  logoScale?: number; // 0–1 (relative width of QR, default ~0.2)
 };
 
-export function chooseErrorCorrection({
-  content,
-  hasLogo,
-  logoScale = 0.15,
-}: DecideECInput): ErrorCorrection {
-  // ---- 1. Estimate payload length ----
+export function chooseErrorCorrection({ content, hasLogo, logoScale = 0.2 }: DecideECInput): ErrorCorrection {
+  
   let payloadLength = 0;
 
   switch (content.type) {
@@ -31,41 +27,19 @@ export function chooseErrorCorrection({
       break;
   }
 
-  // ---- 2. Estimate logo obstruction ----
-  // logoScale is width ratio → area ≈ scale²
   const logoAreaRatio = hasLogo ? logoScale * logoScale : 0;
 
-  // ---- 3. Decision matrix ----
-
-  // No logo → always lowest viable EC
   if (!hasLogo) {
     if (payloadLength < 120) return "L";
     if (payloadLength < 250) return "M";
     return "Q";
   }
 
-  // Logo present
-  // Small payload + small logo
-  if (payloadLength < 120 && logoAreaRatio <= 0.06) {
-    return "L";
-  }
+  if ( payloadLength < 120 && logoAreaRatio <= 0.06 ) return "L";
 
-  // Medium payload or medium logo
-  if (
-    payloadLength < 250 &&
-    logoAreaRatio <= 0.1
-  ) {
-    return "M";
-  }
+  if ( payloadLength < 250 && logoAreaRatio <= 0.1 ) return "M";
 
-  // Large payload or large logo
-  if (
-    payloadLength < 400 &&
-    logoAreaRatio <= 0.16
-  ) {
-    return "Q";
-  }
+  if ( payloadLength < 400 && logoAreaRatio <= 0.16 ) return "Q"; 
 
-  // Worst case
   return "H";
 }

@@ -1,12 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/context/auth-context"; // Assumes you have this from your auth setup
+import { useAuth } from "@/context/auth-context";
 import { fetchHistory, deleteQrCode as deleteQrCode, updateQrCode, saveToDashboard } from "@/lib/firebase";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { QRDocument, QRData } from "@/types/qr";
-// Define the shape of a QR Code object (matching your Firestore structure)
 
 interface QRContextType {
   qrCodes: QRDocument[];

@@ -7,12 +7,17 @@ import {
   query, 
   where, 
   getDocs, 
+  getDoc,
+  setDoc,
   deleteDoc, 
   doc, 
   updateDoc, 
   serverTimestamp,
   Timestamp 
 } from 'firebase/firestore';
+
+import { QRData } from '@/types/qr';
+import { UserData } from '@/types/user-data';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -40,13 +45,31 @@ export const loginGoogle = async () => {
 
 export const logoutUser = () => signOut(auth);
 
-// --- Extended Saving Logic ---
-import { QRData } from '@/types/qr';
+export async function createUserDoc(user: User): Promise<UserData> {
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    const data: UserData = {
+      email: user.email,
+      plan: "free",
+      qrLimit: 10,
+      subscriptionStatus: "inactive",
+      stripeCustomerId: null,
+      paidUntil: null,
+      createdAt: serverTimestamp() as any,
+    };
+
+    await setDoc(ref, data);
+    return data;
+  }
+
+  return snap.data() as UserData;
+}
 
 export const saveToDashboard = async (user: User | null, data: QRData) => {
   if (!user) throw new Error("User not authenticated");
 
-  // SAFETY CHECK: Firestore Document Size Limit is 1MB
   if (data.design.logo && data.design.logo.length > 800000) {
     throw new Error("Logo image is too large for database storage. Please resize below 500KB.");
   }
@@ -71,7 +94,6 @@ export const updateQrCode = async (id: string, data: Partial<QRData>) => {
     const docRef = doc(db, "qrcodes", id);
     const payload = {
       ...data,
-      // Only update the modified time
       updatedAt: serverTimestamp()
     };
     await updateDoc(docRef, payload);
@@ -102,8 +124,6 @@ export const fetchHistory = async (user: User | null) => {
       return { 
         id: doc.id, 
         ...data,
-        // Helper: Check if it's a Firestore Timestamp (has .toDate) and convert to ISO string
-        // This handles cases where data might still be a string (legacy data) or a Timestamp (new data)
         createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
         updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt,
       };

@@ -114,7 +114,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
             y={gridSize / 2 - logoBlockSize / 2}
             width={logoBlockSize}
             height={logoBlockSize}
-            preserveAspectRatio="xMidYMid slice"
+            preserveAspectRatio="xMidYMid meet"
           />
         )}
       </svg>
