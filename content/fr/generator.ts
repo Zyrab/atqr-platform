@@ -17,7 +17,7 @@ export const generator = {
   },
   logo: { title: "Logo", upload: "Télécharger un logo", change: "Changer le logo", icon: "upload", note: "Max 2Mo. PNG transparent recommandé.", rmv_bg: "Supprimer l'arrière-plan" },
   download: { title: "Télécharger", icon: "download", note: "QR statique gratuit • Sans expiration" },
-  save: { title: "Sauvegarder", icon: "save", note: "Voulez-vous sauvegarder ce QR code ou en gérer plusieurs ?" },
+  save: { title: "Sauvegarder", icon: "save", note: "Voulez-vous sauvegarder ce QR code ou en gérer plusieurs ?" ,limit_reached:"----"},
   signin: { title: "Se connecter", icon: "save", note: "Connectez-vous pour sauvegarder jusqu'à 10 QR codes" },
   footer: "Les QR codes sont souvent annoncés comme « gratuits » mais cessent de fonctionner après un certain temps. Ce générateur crée des QR codes statiques qui n'expirent jamais. Parfait pour les supports imprimés comme les affiches, les menus, les emballages et les cartes de visite."
 }
