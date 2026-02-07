@@ -22,10 +22,12 @@ export default function Header({ locale = "en" }: { locale?: "en" | "ka" }) {
       const isSavedTheme = localStorage.getItem("saved_theme");
       if (isSavedTheme) {
         setDarkMode(isSavedTheme === "dark");
+        document.documentElement.classList.add(isSavedTheme);
       } else {
         const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
         if (isSystemDark) {
           setDarkMode(true);
+          document.documentElement.classList.add("dark");
         }
       }
     }
