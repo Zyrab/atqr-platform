@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase/firestore";
 
 export type UserData = {
-  email: string;
+  email: string | null;
   plan: "free" | "trial" | "paid";
   subscriptionStatus: "inactive" | "trialing" | "active";
   stripeCustomerId: string | null;

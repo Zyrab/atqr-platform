@@ -55,9 +55,13 @@ export async function createUserDoc(user: User): Promise<UserData> {
     const data: UserData = {
       email: user.email,
       plan: "free",
-      qrLimit: 10,
       subscriptionStatus: "inactive",
       stripeCustomerId: null,
+      qrLimit: 10,
+      dynamicQrLimit: 0,
+      trialUsed:false,
+      trialStartedAt: null,
+      trialEndsAt: null,
       paidUntil: null,
       createdAt: serverTimestamp() as any,
     };
