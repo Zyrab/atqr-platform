@@ -1,5 +1,3 @@
-import { ActionKey } from "@/lib/actions";
-
 export const landing = {
   title:{
     title:"Free QR Code Generator, No Login, No Expiration",
@@ -33,7 +31,7 @@ export const landing = {
   unsure: {
     title: "Not sure which one you need?",
     subtitle: "Start with a free static QR code, upgrade only if you need more control.",
-    button:{ label: "Generate a free QR code", action:"scroll_to_generator" satisfies ActionKey } as const
+    button:{ label: "Generate a free QR code", action:"scroll_to_generator" }
   },
   examples:{
     title:"High-Quality QR Codes You Can Customize",
@@ -54,17 +52,17 @@ export const landing = {
       {
         title:"Free (No account required)",
         items:["Generate unlimited static QR codes","Download instantly","No expiration","No tracking","Not saved on the server"],
-        button: { label: "Generate free QR code", action: "scroll_to_generator" satisfies ActionKey  },      
+        button: { label: "Generate free QR code", action: "scroll_to_generator"  },      
       },
       {
         title:"Free account",
         items:["Save up to 10 static QR codes","Access them from any device","Edit design (URL stays the same)"],
-        button:{ label: "Create free account", action:"go_to_login" satisfies ActionKey }
+        button:{ label: "Create free account", action:"go_to_login" }
       },
       {
         title:"From $3 / month",
         items:["Change destination link anytime","Central management dashboard","Designed for campaigns and updates","Requires an active plan"],
-        button:{label: "Get dynamic QR codes", action:"go_to_pricing" satisfies ActionKey}
+        button:{label: "Get dynamic QR codes", action:"go_to_pricing"}
       }
     ],
     footer:"Static QR codes are best for most printed use cases. Dynamic QR codes are only needed when the destination must change after printing."

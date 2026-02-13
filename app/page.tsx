@@ -34,7 +34,7 @@ export default function Landing({ locale = "en" }: { locale?: "en" | "ka" }) {
       <StaticVsDinamicSection t={t.staticVsDynamic} />
       <Section>
         <HeaderGroup header={t.unsure.title} subheading={t.unsure.subtitle} />
-        <Button onClick={() => handleAction(t.unsure.button.action)} size="lg">
+        <Button onClick={() => handleAction(t.unsure.button.action as ActionKey)} size="lg">
           {t.unsure.button.label}
         </Button>
       </Section>

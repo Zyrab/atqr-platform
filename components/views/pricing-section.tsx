@@ -27,7 +27,7 @@ export default function PricingSection({ t, onAction }: PricingProps) {
                 </li>
               ))}
             </ul>
-            <Button size="sm" variant="outline" onClick={() => onAction(button.action)}>
+            <Button size="sm" variant="default" onClick={() => onAction(button.action)}>
               {button.label}
             </Button>
           </Card>

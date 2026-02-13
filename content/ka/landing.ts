@@ -1,4 +1,3 @@
-import { ActionKey } from "@/lib/actions";
 
 export const landing = {
   title: {
@@ -33,7 +32,7 @@ export const landing = {
   unsure: {
     title: "არ ხართ დარწმუნებული, რომელი გჭირდებათ?",
     subtitle: "დაიწყეთ უფასო სტატიკური QR კოდით, განაახლეთ მხოლოდ იმ შემთხვევაში, თუ მეტი კონტროლი გჭირდებათ.",
-    button: { label: "უფასო QR კოდის შექმნა", action: "scroll_to_generator" satisfies ActionKey } as const
+    button: { label: "უფასო QR კოდის შექმნა", action: "scroll_to_generator"}
   },
   examples: {
     title: "კოსტუმიზირებადი, მაღალი ხარისხის QR კოდები",
@@ -54,17 +53,17 @@ export const landing = {
       {
         title: "უფასო (რეგისტრაციის გარეშე)",
         items: ["შეუზღუდავი სტატიკური QR კოდები", "მყისიერი ჩამოტვირთვა", "ვადის გარეშე", "ტრეკინგის გარეშე", "არ ინახება სერვერზე"],
-        button: { label: "უფასო QR კოდის შექმნა", action: "scroll_to_generator" satisfies ActionKey },
+        button: { label: "უფასო QR კოდის შექმნა", action: "scroll_to_generator"},
       },
       {
         title: "უფასო ანგარიში",
         items: ["შეინახეთ 10-მდე სტატიკური QR კოდი", "წვდომა ნებისმიერი მოწყობილობიდან", "დიზაინის რედაქტირება (URL იგივე რჩება)"],
-        button: { label: "უფასო ანგარიშის შექმნა", action: "go_to_login" satisfies ActionKey }
+        button: { label: "უფასო ანგარიშის შექმნა", action: "go_to_login"}
       },
       {
         title: "ფასიანი ($3-დან / თვეში)",
         items: ["შეცვალეთ დანიშნულების ბმული ნებისმიერ დროს", "მართვის პანელი", "შექმნილია კამპანიებისთვის", "საჭიროებს აქტიურ გეგმას"],
-        button: { label: "დინამიური QR კოდები", action: "go_to_pricing" satisfies ActionKey }
+        button: { label: "დინამიური QR კოდები", action: "go_to_pricing"}
       }
     ],
     footer: "სტატიკური QR კოდები საუკეთესოა უმეტესობა ბეჭდური მასალისთვის. დინამიური კოდები საჭიროა მხოლოდ მაშინ, თუ ბეჭდვის შემდეგ ბმულის შეცვლა გჭირდებათ."
