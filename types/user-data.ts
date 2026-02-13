@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-export type User = {
+export type UserData = {
   email: string;
   plan: "free" | "trial" | "paid";
   subscriptionStatus: "inactive" | "trialing" | "active";
