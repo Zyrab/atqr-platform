@@ -11,8 +11,9 @@ const fontSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "QR Studio",
-  description: "Free QR Code Generator",
+  title: "Free QR Code Generator – No Login, No Expiration | AT QR",
+  description:
+    "Generate static QR codes instantly. Download and print them for free, without login or expiration. Perfect for business, events, or personal use.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
