@@ -10,7 +10,7 @@ Live: https://www.atqr.app
 
 ATQR is a subscription-based QR code generator with advanced customization, cloud saving, and scalable billing integration.
 
-Backend logic is powered by [atqr-functions](), handling Stripe billing, subscription sync, and user data.
+Backend logic is powered by [atqr-functions](https://github.com/Zyrab/atqr-functions), handling Stripe billing, subscription sync, and user data.
 
 The platform supports:
 
@@ -76,7 +76,7 @@ The platform supports:
 ## Local Development
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/atqr-platform
+git clone https://github.com/Zyrab/atqr-platform
 cd atqr-platform
 npm install
 npm run dev
