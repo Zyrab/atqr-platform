@@ -53,5 +53,5 @@ export default function Icons({ name, ...props }: IconsProps) {
     return null;
   }
 
-  return <IconComponent {...props} size="30" />;
+  return <IconComponent {...props} />;
 }
