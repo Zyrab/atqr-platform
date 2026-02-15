@@ -1,5 +1,5 @@
 export const header = {
-  title:"QR Studion",
+  title:"QR Studio",
   subtitle:"QR Codes. Simple. Permanent.",
   log_in:"Log In",
   log_out:"Log Out",

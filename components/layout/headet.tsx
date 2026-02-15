@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "../ui/dropdown-menu";
-import { Badge } from "../ui/badge";
+
 export default function Header({ locale = "en" }: { locale?: "en" | "ka" }) {
   const t = getLocale(locale, "header");
   const { user, userData } = useAuth();
@@ -67,10 +67,10 @@ export default function Header({ locale = "en" }: { locale?: "en" | "ka" }) {
             <LogoIcon size={36} />
           </div>
           <div className="flex flex-col ">
-            <span className="font-extrabold text-xl tracking-tight text-foreground transition-colors group-hover:text-primary">
+            <span className="font-extrabold text-xl tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
               {t.title}
             </span>
-            <span className="text-xs font-medium tracking-tight text-foreground transition-colors group-hover:text-primary">
+            <span className="text-xs font-medium tracking-tight text-foreground transition-colors group-hover:text-muted-foreground">
               {t.subtitle}
             </span>
           </div>
