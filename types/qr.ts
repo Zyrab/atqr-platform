@@ -5,6 +5,7 @@ export type QRCodeMatrix = boolean[][];
 type UrlContent = { type: 'url'; url: string };
 type TextContent = { type: 'text'; text: string };
 type WifiContent = { type: 'wifi'; ssid: string; password: string };
+type QrType = "static" | "dynamic"
 
 export type QRContent = UrlContent | TextContent | WifiContent;
 
@@ -25,6 +26,8 @@ export interface QRData {
   name: string;
   content: QRContent;
   design: QRDesign;
+  type: QrType;
+  qrId?: string;
 }
 
 export interface QRDocument extends QRData {
