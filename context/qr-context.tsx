@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/auth-context";
-import { fetchHistory, deleteQrCode, updateQrCode, saveToDashboard } from "@/lib/firebase";
+import { fetchHistory, deleteQrCode, updateQrCode, saveToDashboard, uploadQrLogo } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 import { QRDocument, QRData } from "@/types/qr";
@@ -13,8 +13,8 @@ interface QRContextType {
   error: string | null;
   refreshQRCodes: () => Promise<void>;
   deleteQr: (id: string) => Promise<void>;
-  updateQr: (id: string, data: Partial<QRData>) => Promise<void>;
-  saveQr: (data: QRData) => Promise<void>;
+  updateQr: (id: string, data: Partial<QRData>, logo: Blob | null) => Promise<void>;
+  saveQr: (data: QRData, logo: Blob | null) => Promise<void>;
   getQrById: (id: string) => QRData | undefined;
 }
 
@@ -23,7 +23,7 @@ const QRContext = createContext<QRContextType | undefined>(undefined);
 export function QRProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const router = useRouter();
-
+  const uid = user?.uid || null;
   const [qrCodes, setQrCodes] = useState<QRDocument[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,11 +52,12 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
   }, [loadData]);
 
   const deleteQr = async (id: string) => {
+    if (!uid) return;
     const previousCodes = [...qrCodes];
     setQrCodes((prev) => prev.filter((item) => item.id !== id));
 
     try {
-      await deleteQrCode(id);
+      await deleteQrCode(uid, id);
     } catch (err) {
       console.error("Delete failed", err);
       setQrCodes(previousCodes);
@@ -64,11 +65,13 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateQr = async (id: string, updates: Partial<QRData>) => {
+  const updateQr = async (id: string, updates: Partial<QRData>, logo: Blob | null) => {
+    if (!uid) return;
+
     setQrCodes((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
 
     try {
-      await updateQrCode(id, updates);
+      await updateQrCode(uid, id, updates, logo);
       router.push("/dashboard");
     } catch (err) {
       console.error("Update failed", err);
@@ -77,7 +80,7 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const saveQr = async (qrData: QRData) => {
+  const saveQr = async (qrData: QRData, logo: Blob | null) => {
     if (!user) {
       router.push("/auth?mode=login");
       return;
@@ -85,7 +88,7 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true);
     try {
-      await saveToDashboard(user, qrData);
+      await saveToDashboard(uid, qrData, logo);
       loadData();
       router.push("/dashboard");
     } catch (err) {
