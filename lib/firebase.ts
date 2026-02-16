@@ -3,19 +3,18 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, type User } from
 import { 
   getFirestore, 
   collection, 
-  addDoc, 
   query, 
-  where, 
   getDocs, 
   getDoc,
-  setDoc,
   deleteDoc, 
   doc, 
   updateDoc, 
   serverTimestamp,
-  Timestamp 
+  limit,
+  orderBy
 } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 import { QRData } from '@/types/qr';
 import { UserData } from '@/types/user-data';
@@ -31,6 +30,7 @@ const firebaseConfig = {
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const storage = getStorage(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 const functions = getFunctions(app, "europe-west3");
@@ -47,61 +47,82 @@ export const loginGoogle = async () => {
 
 export const logoutUser = () => signOut(auth);
 
-export async function createUserDoc(user: User): Promise<UserData> {
-  const ref = doc(db, "users", user.uid);
+export async function getUserDoc(uid: string): Promise<UserData | null> {
+  const ref = doc(db, "users", uid);
   const snap = await getDoc(ref);
 
-  if (!snap.exists()) {
-    const data: UserData = {
-      email: user.email,
-      plan: "free",
-      subscriptionStatus: "inactive",
-      stripeCustomerId: null,
-      qrLimit: 10,
-      dynamicQrLimit: 0,
-      trialUsed:false,
-      trialStartedAt: null,
-      trialEndsAt: null,
-      paidUntil: null,
-      createdAt: serverTimestamp() as any,
-    };
-
-    await setDoc(ref, data);
-    return data;
-  }
-
+  if (!snap.exists()) return null;
   return snap.data() as UserData;
 }
 
-export const saveToDashboard = async (user: User | null, data: QRData) => {
-  if (!user) throw new Error("User not authenticated");
-
-  if (data.design.logo && data.design.logo.length > 800000) {
-    throw new Error("Logo image is too large for database storage. Please resize below 500KB.");
-  }
-
+export const uploadQrLogo = async (uid: string, qrId: string, blob: Blob): Promise<string> => {
+  const storageRef = ref(storage, `users/${uid}/qrcodes/${qrId}/logo.png`);
+  const snapshot = await uploadBytes(storageRef, blob);
+  return await getDownloadURL(snapshot.ref);
+};
+export const deleteQrLogo = async (uid: string, qrId: string) => {
   try {
-    await addDoc(collection(db, "qrcodes"), {
-      uid: user.uid,
-      name: data.name || "Untitled QR",
-      content: data.content,
-      design: data.design,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-  } catch (e) {
-    console.error("Error adding document: ", e);
-    throw e;
+    const storageRef = ref(storage, `users/${uid}/qrcodes/${qrId}/logo.png`);
+    await deleteObject(storageRef);
+  } catch (e: any) {
+    if (e.code !== 'storage/object-not-found') console.error("Error deleting logo:", e);
   }
 };
+export const saveToDashboard = async (uid: string | null, data: QRData, logo: Blob | null) => {
+  if (!uid) throw new Error("User not authenticated");
 
-export const updateQrCode = async (id: string, data: Partial<QRData>) => {
+  const newQrRef = doc(collection(db, "users", uid, "qrcodes"));
+  const generatedId = newQrRef.id;
+
+  let finalLogoUrl = data.design.logo;
+
+  if (logo) finalLogoUrl = await uploadQrLogo(uid, generatedId, logo);
+
+  const payload = {
+    ...data,
+    qrId: generatedId,
+    design: {
+      ...data.design,
+      logo: finalLogoUrl
+    }
+  };
+
+  const createQRCode = httpsCallable(functions, 'createQRCode');
+
   try {
-    const docRef = doc(db, "qrcodes", id);
+    const result = await createQRCode(payload); 
+    return result.data; 
+    
+  } catch (error: any) {
+    console.error("Error calling createQRCode:", error.code, error.message);
+    
+    if (error.code === 'resource-exhausted') {
+      throw new Error("You've reached your QR code limit. Please upgrade your plan.");
+    }
+    if (error.code === 'permission-denied') {
+      throw new Error(error.message || "You don't have permission to perform this action.");
+    }
+    
+    throw new Error(error.message || "An unexpected error occurred while saving.");
+  }
+};
+export const updateQrCode = async ( uid: string, id: string, data: Partial<QRData>, logo: Blob | null) => {
+  try {
+    const docRef = doc(db, "users", uid, "qrcodes", id);
+
+    let finalLogoUrl = data.design?.logo;
+    if (logo) {
+      finalLogoUrl = await uploadQrLogo(uid, id, logo);
+    }
     const payload = {
       ...data,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
+      design: {
+        ...data.design, 
+        logo: finalLogoUrl || null
+      }
     };
+
     await updateDoc(docRef, payload);
   } catch (e) {
     console.error("Error updating document: ", e);
@@ -109,9 +130,11 @@ export const updateQrCode = async (id: string, data: Partial<QRData>) => {
   }
 };
 
-export const deleteQrCode = async (id: string) => {
+
+export const deleteQrCode = async (uid: string, id: string) => {
   try {
-    await deleteDoc(doc(db, "qrcodes", id));
+    await deleteQrLogo(uid, id);
+    await deleteDoc(doc(db, "users", uid, "qrcodes", id));
   } catch (e) {
     console.error("Error deleting document: ", e);
     throw e;
@@ -120,18 +143,23 @@ export const deleteQrCode = async (id: string) => {
 
 export const fetchHistory = async (user: User | null) => {
   if (!user) return [];
+
   try {
-    const q = query(collection(db, "qrcodes"), where("uid", "==", user.uid));
+    const q = query(
+      collection(db, "users", user.uid, "qrcodes"),
+      orderBy("createdAt", "desc"),
+      limit(20)
+    );
+
     const snapshot = await getDocs(q);
-    
-    // Convert Firestore Timestamps back to simple Strings for the UI
+
     return snapshot.docs.map((doc) => {
       const data = doc.data();
-      return { 
-        id: doc.id, 
+      return {
+        id: doc.id,
         ...data,
-        createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
-        updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+        createdAt: data.createdAt?.toDate?.().toISOString() ?? data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.().toISOString() ?? data.updatedAt,
       };
     });
   } catch (e) {
