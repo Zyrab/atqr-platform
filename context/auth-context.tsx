@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth, createUserDoc } from "@/lib/firebase";
+import { auth, getUserDoc } from "@/lib/firebase";
 import { Loader2 } from "lucide-react";
 
 import { UserData } from "@/types/user-data";
@@ -11,6 +11,15 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
 }
+
+const fetchUserData = async (uid: string, retries = 5) => {
+  for (let i = 0; i < retries; i++) {
+    const data = await getUserDoc(uid);
+    if (data) return data;
+    await new Promise((res) => setTimeout(res, 500));
+  }
+  return null;
+};
 
 const AuthContext = createContext<AuthContextType>({ user: null, userData: null, loading: true });
 
@@ -30,7 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       setUser(firebaseUser);
 
-      const data = await createUserDoc(firebaseUser);
+      const data = await fetchUserData(firebaseUser.uid);
       setUserData(data);
 
       setLoading(false);
