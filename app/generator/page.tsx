@@ -15,7 +15,7 @@ import UploadLogo from "./upload-logo";
 import QRCodeRenderer from "./renderer";
 import AdSpace from "@/components/ui/ad-space";
 
-import { resizeImage } from "@/lib/qr-utils";
+import { resizeImageToBlob } from "@/lib/qr-utils";
 import { useQRCodeGenerator } from "@/hooks/use-qr-generator";
 import { useQRDownload } from "@/hooks/use-qr-download";
 import { RadioGroupItem, RadioGroup } from "@/components/ui/radio";
@@ -38,7 +38,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
   const [downloadFormat, setDownloadFormat] = useState<"png" | "jpeg" | "svg">("png");
   const isEditing = useRef<boolean>(false);
   const svgRef = useRef<SVGSVGElement | null>(null);
-
+  const logoBlobRef = useRef<Blob | null>(null);
   const [qrData, setQrData] = useState<QRData>({
     name: "",
     content: {
@@ -54,6 +54,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
       eyeFrame: "square",
       eyeBall: "square",
     },
+    type: "static",
   });
 
   const [draftContent, setDraftContent] = useState(qrData.content);
@@ -100,18 +101,16 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2000000) {
-        alert("File too large. Please upload an image under 2MB.");
-        return;
-      }
       try {
-        const resizedBase64 = await resizeImage(file);
+        const blob = await resizeImageToBlob(file);
+        logoBlobRef.current = blob;
+
         setQrData((prev) => ({
           ...prev,
-          design: { ...prev.design, logo: resizedBase64 },
+          design: { ...prev.design, logo: URL.createObjectURL(blob) },
         }));
       } catch (err) {
-        console.error("Error resizing image:", err);
+        console.error(err);
       }
     }
   };
@@ -148,11 +147,12 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     }
 
     if (isEditing.current) {
-      if (id) await updateQr(id, qrData);
+      if (id) await updateQr(id, qrData, logoBlobRef.current);
     } else {
-      await saveQr(qrData);
+      await saveQr(qrData, logoBlobRef.current);
     }
   };
+
   return (
     <Section>
       {header ? <HeaderGroup tag="h1" header={header.title} subheading={header.subtitle} /> : null}
