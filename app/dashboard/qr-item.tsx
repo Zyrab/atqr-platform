@@ -161,7 +161,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
                 size="sm"
                 variant="ghost"
                 onClick={() => {
-                  updateQr(item.id, { name: nameDraft });
+                  updateQr(item.id, { name: nameDraft }, null);
                   setIsEditName(false);
                 }}
               >
