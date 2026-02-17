@@ -34,8 +34,7 @@ export const useQRCodeGenerator = (
   
   const matrix: QRCodeMatrix = useMemo(() => {
     if (!debouncedContent) return [];
-    const ecLevel = chooseErrorCorrection({ content, hasLogo, logoScale: 0.15, });
-    console.log(ecLevel)
+    const ecLevel = chooseErrorCorrection({ content, hasLogo});
     
     const qrString = getQRString(debouncedContent);
     if (!qrString) return [];

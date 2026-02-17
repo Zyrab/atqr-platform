@@ -33,7 +33,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
     bodyColor = "#000000",
     eyeColor = "#000000",
     bgColor = "transparent",
-    logoSizeRatio = 0.23,
+    logoSizeRatio = 0.2,
   } = design;
 
   const padding = 2;
