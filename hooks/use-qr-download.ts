@@ -6,23 +6,42 @@ export const useQRDownload = () => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const downloadQrCode = useCallback(
-    async (svgRef: React.RefObject<SVGSVGElement|null>, filename: string, format: FileFormat, size: number = 1000) => {
+    async (svgRef: React.RefObject<SVGSVGElement | null>, filename: string, format: FileFormat, size: number = 1000) => {
       if (!svgRef.current) return;
       setIsDownloading(true);
 
       try {
-        const svgElement = svgRef.current;
+        const originalSvg = svgRef.current;
+        const clonedSvg = originalSvg.cloneNode(true) as SVGSVGElement;
+        
+        const logoImage = clonedSvg.querySelector("image");
+        const logoHref = logoImage?.getAttribute("href");
+        const isLogoPresent = logoImage && logoHref && (logoHref.startsWith("http") || logoHref.startsWith("blob:"));
 
-        // 1. Serialize the SVG to a string
+        if (isLogoPresent) {
+          try {
+            const response = await fetch(logoHref, { mode: "cors" });
+            const blob = await response.blob();
+            
+            const base64 = await new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.readAsDataURL(blob);
+            });
+
+            logoImage.setAttribute("href", base64);
+          } catch (e) {
+            console.warn("Failed to inline logo. The downloaded QR might be missing the logo.", e);
+          }
+        }
+
+        // 3. Serialize the CLONED SVG (now containing the embedded logo)
         const serializer = new XMLSerializer();
-        const svgString = serializer.serializeToString(svgElement);
+        const svgString = serializer.serializeToString(clonedSvg);
 
-        // 2. Prepare the source for the Image object
-        // We use encodeURIComponent to ensure special characters in SVG (like #) don't break the data URI
         const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
         const url = URL.createObjectURL(svgBlob);
 
-        // Handle SVG download immediately
         if (format === "svg") {
           const link = document.createElement("a");
           link.href = url;
@@ -37,22 +56,22 @@ export const useQRDownload = () => {
 
         // Handle Raster (PNG/JPG)
         const img = new Image();
+        
+        img.crossOrigin = "anonymous"; 
+
         img.onload = () => {
           const canvas = document.createElement("canvas");
-          // Set canvas to desired resolution
           canvas.width = size;
           canvas.height = size;
 
           const ctx = canvas.getContext("2d");
           if (!ctx) return;
 
-          // If JPEG, fill white background (otherwise transparent parts become black)
           if (format === "jpeg") {
             ctx.fillStyle = "#FFFFFF";
             ctx.fillRect(0, 0, size, size);
           }
 
-          // Draw image stretched to canvas size
           ctx.drawImage(img, 0, 0, size, size);
 
           const dataUrl = canvas.toDataURL(`image/${format}`, 1.0);
@@ -68,8 +87,8 @@ export const useQRDownload = () => {
           setIsDownloading(false);
         };
 
-        img.onerror = () => {
-          console.error("Failed to load SVG for conversion");
+        img.onerror = (e) => {
+          console.error("Failed to load SVG for conversion", e);
           setIsDownloading(false);
         };
 
