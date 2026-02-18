@@ -8,6 +8,7 @@ type WifiContent = { type: 'wifi'; ssid: string; password: string };
 type QrType = "static" | "dynamic"
 
 export type QRContent = UrlContent | TextContent | WifiContent;
+export type ErrorCorrection = "L" | "M" | "Q" | "H";
 
 
 export interface QRDesign {
@@ -18,6 +19,7 @@ export interface QRDesign {
   eyeColor?: string;
   bgColor?: string;
   logo?: string | null;
+  logoBG: boolean;
   logoStyle?: 'square' | 'circle';
   logoSizeRatio?: number;
 }

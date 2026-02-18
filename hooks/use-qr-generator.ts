@@ -1,13 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import QRCode from "qrcode";
-import type { QRCodeMatrix, QRContent } from '@/types/qr';
-import { chooseErrorCorrection } from "@/lib/error-correction-level";
+import type { QRCodeMatrix, QRContent ,ErrorCorrection} from '@/types/qr';
 
 
-// Debounce helper
+type DecideECInput = {
+  length: number;
+  hasLogo: boolean;
+};
+
+
 function useDebouncedValue<T>(value: T, delay: number): T {
   return useMemo(() => value, [value, delay]);
 }
+
+
 
 function getQRString(content: QRContent): string | null {
   switch (content.type) {
@@ -24,19 +30,27 @@ function getQRString(content: QRContent): string | null {
 }
 
 
+export function chooseErrorCorrection({ length = 0, hasLogo }: DecideECInput): ErrorCorrection {
+ 
+  if (!hasLogo) {
+    if (length < 20) return "M";
+    return "L";
+  }
 
-export const useQRCodeGenerator = (
-  content: QRContent,
-  hasLogo: boolean,
-  debounceMs = 800
-) => {
+  if (length <= 25) return "H";
+  if (length <= 150) return "Q";
+  return "M";
+}
+
+export const useQRCodeGenerator = ( content: QRContent, hasLogo: boolean, debounceMs = 800) => {
   const debouncedContent = useDebouncedValue(content, debounceMs);
   
   const matrix: QRCodeMatrix = useMemo(() => {
     if (!debouncedContent) return [];
-    const ecLevel = chooseErrorCorrection({ content, hasLogo});
-    
     const qrString = getQRString(debouncedContent);
+
+    const ecLevel = chooseErrorCorrection({ length:qrString?.length||0, hasLogo});
+    
     if (!qrString) return [];
 
     try {
@@ -45,9 +59,7 @@ export const useQRCodeGenerator = (
       const size = qrRaw.modules.size;
       const data = qrRaw.modules.data;
 
-      const result: boolean[][] = Array.from({ length: size }, (_, y) =>
-        Array.from({ length: size }, (_, x) => data[y * size + x] === 1)
-      );
+      const result: boolean[][] = Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => data[y * size + x] === 1) );
 
       return result;
     } catch {
