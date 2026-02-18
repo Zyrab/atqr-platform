@@ -24,11 +24,8 @@ function AuthForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already logged in
   useEffect(() => {
-    if (user) {
-      router.push("/dashboard");
-    }
+    if (user) router.push("/dashboard");
   }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {

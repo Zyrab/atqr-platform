@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, QrCode, Search, SlidersHorizontal, ArrowUpDown, Filter } from "lucide-react";
+import { Plus, QrCode, ArrowUpDown } from "lucide-react";
 
 // UI Components
 import { Button } from "@/components/ui/button";
