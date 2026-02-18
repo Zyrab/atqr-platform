@@ -1,15 +1,17 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/input"; // Using your custom Label
+import { Label, CheckboxLabel } from "@/components/ui/input";
 import { X, ImageIcon, Upload } from "lucide-react";
 interface UploadLogoProps {
   logo?: string | null;
   setQrData: (data: any) => void;
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  logoBG: boolean;
   t: any;
 }
 
-export default function UploadLogo({ logo, setQrData, handleImageUpload, t }: UploadLogoProps) {
+export default function UploadLogo({ logo, setQrData, handleImageUpload, logoBG, t }: UploadLogoProps) {
+  console.log(logoBG);
   return (
     <div>
       <Label>{t.title}</Label>
@@ -17,7 +19,7 @@ export default function UploadLogo({ logo, setQrData, handleImageUpload, t }: Up
         <div>
           <Button variant="outline" className="relative">
             <Upload />
-            {logo ? t.upload : t.change}
+            {logo ? t.change : t.upload}
             <input
               type="file"
               className="absolute inset-0 opacity-0 cursor-pointer"
@@ -43,6 +45,19 @@ export default function UploadLogo({ logo, setQrData, handleImageUpload, t }: Up
             <ImageIcon className="h-5 w-5 text-muted-foreground" />
           </div>
         )}
+        <CheckboxLabel
+          label="Remove background"
+          checked={logoBG}
+          onCheckedChange={(checked: boolean) =>
+            setQrData((prev: any) => ({
+              ...prev,
+              design: {
+                ...prev.design,
+                logoBG: checked,
+              },
+            }))
+          }
+        />
       </div>
     </div>
   );

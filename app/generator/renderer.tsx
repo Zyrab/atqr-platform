@@ -1,6 +1,5 @@
 import React, { useMemo } from "react";
 import { FinderPattern, ShapeRenderers } from "./rendering/shape-renderers";
-// import { ShapeRenderers } from "./rendering/body-shape-renderer";
 
 import { QRCodeRendererProps, QRCodeMatrix } from "@/types/qr";
 
@@ -9,17 +8,18 @@ const NEIGHBOR_DEPENDENT_SHAPES = new Set(["fluid", "soft", "blobH", "blobV", "e
 const isFinderPattern = (x: number, y: number, size: number) =>
   (x < 7 && y < 7) || (x > size - 8 && y < 7) || (x < 7 && y > size - 8);
 
-const isLogoZone = (x: number, y: number, size: number, logoSize: number) => {
+const isLogoZone = (x: number, y: number, size: number, logoSize: number, logoBG: boolean) => {
   if (!logoSize) return false;
+  if (logoBG) return false;
   const center = Math.floor(size / 2);
   const half = Math.ceil(logoSize / 2);
   return x >= center - half && x <= center + half && y >= center - half && y <= center + half;
 };
-const isDarkAt = (matrix: QRCodeMatrix, x: number, y: number, size: number, logoBlockSize: number) => {
+const isDarkAt = (matrix: QRCodeMatrix, x: number, y: number, size: number, logoBlockSize: number, logoBG: boolean) => {
   if (x < 0 || y < 0 || x >= size || y >= size) return 0;
   if (!matrix[y]?.[x]) return 0;
   if (isFinderPattern(x, y, size)) return 0;
-  if (isLogoZone(x, y, size, logoBlockSize)) return 0;
+  if (isLogoZone(x, y, size, logoBlockSize, logoBG)) return 0;
 
   return 1;
 };
@@ -30,12 +30,12 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
     eyeFrame = "square",
     eyeBall = "square",
     logo = null,
+    logoBG = false,
     bodyColor = "#000000",
     eyeColor = "#000000",
     bgColor = "transparent",
     logoSizeRatio = 0.2,
   } = design;
-
   const padding = 2;
   const gridSize = matrix.length;
   const totalSize = gridSize + padding * 2;
@@ -57,25 +57,25 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
       for (let x = 0; x < gridSize; x++) {
         if (!matrix[y][x]) continue;
         if (isFinderPattern(x, y, gridSize)) continue;
-        if (isLogoZone(x, y, gridSize, logoBlockSize)) continue;
+        if (isLogoZone(x, y, gridSize, logoBlockSize, logoBG)) continue;
 
         let neighbors = undefined;
 
         if (needsNeighbors) {
-          const top = isDarkAt(matrix, x, y - 1, gridSize, logoBlockSize);
-          const bottom = isDarkAt(matrix, x, y + 1, gridSize, logoBlockSize);
-          const left = isDarkAt(matrix, x - 1, y, gridSize, logoBlockSize);
-          const right = isDarkAt(matrix, x + 1, y, gridSize, logoBlockSize);
+          const top = isDarkAt(matrix, x, y - 1, gridSize, logoBlockSize, logoBG);
+          const bottom = isDarkAt(matrix, x, y + 1, gridSize, logoBlockSize, logoBG);
+          const left = isDarkAt(matrix, x - 1, y, gridSize, logoBlockSize, logoBG);
+          const right = isDarkAt(matrix, x + 1, y, gridSize, logoBlockSize, logoBG);
 
           neighbors = { top, bottom, left, right };
 
           if (dotType === "extraFluid") {
             neighbors = {
               ...neighbors,
-              topLeft: isDarkAt(matrix, x - 1, y - 1, gridSize, logoBlockSize),
-              topRight: isDarkAt(matrix, x + 1, y - 1, gridSize, logoBlockSize),
-              bottomLeft: isDarkAt(matrix, x - 1, y + 1, gridSize, logoBlockSize),
-              bottomRight: isDarkAt(matrix, x + 1, y + 1, gridSize, logoBlockSize),
+              topLeft: isDarkAt(matrix, x - 1, y - 1, gridSize, logoBlockSize, logoBG),
+              topRight: isDarkAt(matrix, x + 1, y - 1, gridSize, logoBlockSize, logoBG),
+              bottomLeft: isDarkAt(matrix, x - 1, y + 1, gridSize, logoBlockSize, logoBG),
+              bottomRight: isDarkAt(matrix, x + 1, y + 1, gridSize, logoBlockSize, logoBG),
             };
           }
         }
@@ -85,7 +85,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
     }
 
     return elements;
-  }, [matrix, gridSize, dotType, logoBlockSize, bodyColor, size]);
+  }, [matrix, gridSize, dotType, logoBlockSize, bodyColor, size, logoBG]);
 
   if (!gridSize) return null;
 

@@ -50,6 +50,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
       bodyColor: "#000000",
       bgColor: "#ffffff",
       logo: null,
+      logoBG: false,
       logoStyle: "square",
       eyeFrame: "square",
       eyeBall: "square",
@@ -170,6 +171,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
           <Designer design={qrData.design} onDesignChange={onDesignChange} t={t.designer} />
           <UploadLogo
             logo={qrData.design.logo}
+            logoBG={qrData.design.logoBG}
             setQrData={setQrData}
             handleImageUpload={handleImageUpload}
             t={t.logo}
