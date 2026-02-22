@@ -8,7 +8,6 @@ import {
   Copy,
   Calendar,
   Loader2,
-  ScanQrCode,
   Link2,
   Check,
   X,
@@ -24,10 +23,10 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio";
 import { Badge } from "@/components/ui/badge";
 import { HeaderGroup } from "@/components/elements/heading-group";
 import { Input } from "@/components/ui/input";
+import RadioTexts from "@/components/elements/radio-text";
 
 // Logic & Types
 import QRCodeRenderer from "../generator/renderer";
@@ -35,7 +34,7 @@ import { useQRDownload } from "@/hooks/use-qr-download";
 import { useQR } from "@/context/qr-context";
 import { useQRCodeGenerator } from "@/hooks/use-qr-generator";
 import { QRContent, QRDocument } from "@/types/qr";
-import RadioTexts from "@/components/elements/radio-text";
+import { contentCheckers } from "@/lib/content-checker";
 
 interface DashboardItemProps {
   item: QRDocument;
@@ -51,7 +50,6 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }: DashboardItemProps) {
-  // --- Local State ---
   const [downloadSize, setDownloadSize] = useState(1000);
   const [downloadFormat, setDownloadFormat] = useState<"png" | "jpeg" | "svg">("png");
 
@@ -60,29 +58,35 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
 
   const { updateQr } = useQR();
 
-  // Feature flag for dynamic URLs
-  const isDynamic = false;
+  const isDynamic = item.type === "dynamic";
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const { downloadQrCode, isDownloading } = useQRDownload();
-  const contentCheckers: Record<QRContent["type"], (content: QRContent) => boolean> = {
-    url: (content) => (content.type === "url" ? content.url.trim() !== "" : false),
-    text: (content) => (content.type === "text" ? content.text.trim() !== "" : false),
-    wifi: (content) => (content.type === "wifi" ? content.ssid.trim() !== "" || content.password.trim() !== "" : false),
-  };
 
-  // Determine if there is anything typed
+  const dynmicUrl = item.slug
+    ? ({
+        type: "dynamic",
+        redirect: `https://r.atqr.app/${item.slug}`,
+        url: item.content.type === "url" ? item.content.url : "",
+      } as QRContent)
+    : item.content;
+
+  const content = item.type === "dynamic" ? dynmicUrl : item.content;
+
   const isContentFilled = contentCheckers[item.content.type](item.content);
 
-  const { matrix } = useQRCodeGenerator(item.content, Boolean(item.design.logo));
+  const { matrix } = useQRCodeGenerator(content, Boolean(item.design.logo));
+
   const handleDownload = () => {
     if (!isContentFilled) return;
     const fileName = item.name || "qr-code";
     downloadQrCode(svgRef, fileName, downloadFormat, downloadSize);
   };
+
   const formattedDate = useMemo(() => {
     return dateFormatter.format(new Date(item.createdAt));
   }, [item.createdAt]);
+
   function renderContentBadges(content: QRDocument["content"]) {
     switch (content.type) {
       case "url":
@@ -106,6 +110,19 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
             SSID: {content.ssid || "—"}, Password: {content.password || "—"}
           </Badge>
         );
+      case "dynamic":
+        return (
+          <>
+            <Badge variant="ghost">
+              <Link2 />
+              {content.redirect.slice(0, 25) + "…"}
+            </Badge>
+            <Badge variant="ghost">
+              <CornerDownRight />
+              {content.url.slice(0, 25) + "…"}
+            </Badge>
+          </>
+        );
       default:
         return null;
     }
@@ -115,6 +132,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
     url: <Link2 />,
     text: <Type />,
     wifi: <Wifi />,
+    dynamic: <Link2 />,
   };
 
   return (
@@ -138,16 +156,10 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
                 Static
               </Badge>
             )}
-            {isDynamic && (
-              <Badge variant="secondary">
-                <ScanQrCode />
-                1552
-              </Badge>
-            )}
           </div>
         </div>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col justify-between">
           {!isEditName ? (
             <HeaderGroup tag="h3" header={item.name || "Untitled QR"} className="flex-row items-start">
               <Button variant="ghost" onClick={() => setIsEditName(true)}>
@@ -181,7 +193,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
               </Button>
             </div>
           )}
-          {renderContentBadges(item.content)}
+          {renderContentBadges(content)}
           <Badge variant="ghost">
             <Calendar />
             {formattedDate}
