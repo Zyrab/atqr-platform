@@ -23,7 +23,9 @@ import { QRData, QRContent } from "@/types/qr";
 import Designer from "./designer";
 import { getLocale } from "@/content/getLocale";
 import RadioTexts from "@/components/elements/radio-text";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Accordion } from "@/components/ui/accordion";
+import { CheckboxLabel } from "@/components/ui/input";
+import { contentCheckers } from "@/lib/content-checker";
 
 type HeaderType = {
   header: {
@@ -35,6 +37,7 @@ type HeaderType = {
 const DEFAULT_CONTENT: Record<QRContent["type"], QRContent> = {
   url: { type: "url", url: "" },
   text: { type: "text", text: "" },
+  dynamic: { type: "dynamic", redirect: "", url: "" },
   wifi: { type: "wifi", ssid: "", password: "", hidden: false },
 };
 
@@ -92,11 +95,18 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
         ...prev,
         content: draftContent,
         name: draftName,
+        type: draftContent.type === "url" ? prev.type : "static",
       }));
     }, 300);
   }, [draftContent, draftName]);
 
-  const { matrix } = useQRCodeGenerator(qrData.content, Boolean(qrData.design.logo));
+  const dynmicUrl = qrData.slug
+    ? ({ type: "dynamic", redirect: `https://r.atqr.app/${qrData.slug}` } as QRContent)
+    : qrData.content;
+
+  const content = qrData.type === "dynamic" ? dynmicUrl : qrData.content;
+
+  const { matrix } = useQRCodeGenerator(content, Boolean(qrData.design.logo));
   const { downloadQrCode, isDownloading } = useQRDownload();
 
   const handleDownload = () => {
@@ -133,19 +143,12 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
   const onDesignChange = (key: keyof QRData["design"], value: any) =>
     setQrData((prev) => ({ ...prev, design: { ...prev.design, [key]: value } }));
 
-  const contentCheckers: Record<QRContent["type"], (content: QRContent) => boolean> = {
-    url: (content) => (content.type === "url" ? content?.url?.trim() !== "" : false),
-    text: (content) => (content.type === "text" ? content?.text?.trim() !== "" : false),
-    wifi: (content) =>
-      content.type === "wifi" ? content?.ssid?.trim() !== "" || content?.password?.trim() !== "" : false,
-  };
-
   const isContentFilled = contentCheckers[qrData.content.type](qrData.content);
 
   const isFreeUser = userData?.plan === "free";
+  const isTrialQrUsed = userData?.plan === "trial" ? qrCodes.filter((i) => i.type === "dynamic").length >= 1 : false;
   const qrLimit = userData?.qrLimit ?? 0;
   const qrCount = qrCodes.length;
-
   const hasReachedLimit = (user && isFreeUser && !isEditing.current && qrCount >= qrLimit) || false;
 
   const handleSaveQr = async () => {
@@ -167,13 +170,6 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     <Section>
       {header ? <HeaderGroup tag="h1" header={header.title} subheading={header.subtitle} /> : null}
       <div className="w-full max-w-6xl  grid grid-cols-1 gap-4  md:grid-cols-3">
-        {/* <Card size="none" width="auto" className="md:col-span-3">
-          <RadioTexts
-            values={["url", "text", "wifi"]}
-            value={draftContent.type}
-            onValueChange={handleContentTypeChange}
-          />
-        </Card> */}
         <Card width="auto" size="sm" className="order-2 md:order-1 md:col-span-2">
           <h2 className="font-bold text-sm">{t.title}</h2>
 
@@ -184,6 +180,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
               onContentChange={onContentChange}
               onNameChange={onNameChange}
               handleContentTypeChange={handleContentTypeChange}
+              isEditing={isEditing.current}
               t={t.inputs}
             />
 
@@ -225,7 +222,11 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
           <RadioTexts values={["png", "jpeg", "svg"]} value={downloadFormat} onValueChange={setDownloadFormat} />
 
           <div className="w-full flex flex-col gap-1">
-            <Button onClick={handleDownload} disabled={!isContentFilled || isDownloading} variant="default">
+            <Button
+              onClick={handleDownload}
+              disabled={!isContentFilled || isDownloading || qrData.type === "dynamic"}
+              variant="default"
+            >
               {isDownloading ? (
                 <Loader2 className="animate-spin mr-2 h-4 w-4" />
               ) : (
@@ -249,6 +250,15 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
               {hasReachedLimit ? t.save.limit_reached : user ? t.save.note : t.signin.note}
             </p>
           </div>
+          {!isFreeUser && !isEditing.current && !isTrialQrUsed && (
+            <CheckboxLabel
+              label="Track Scans"
+              id="qr-type"
+              disabled={qrData.content.type !== "url"}
+              checked={qrData.type === "dynamic"}
+              onCheckedChange={(val) => setQrData((prev) => ({ ...prev, type: val ? "dynamic" : "static" }))}
+            />
+          )}
         </Card>
       </div>
       <p className="text-muted-foreground text-sm max-w-240 text-center">{t.footer}</p>
