@@ -11,6 +11,7 @@ interface InputAreaProps {
   onContentChange: (field: string, value: string | boolean) => void;
   onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleContentTypeChange: (type: QRContent["type"]) => void;
+  isEditing: boolean;
   t: any;
 }
 
@@ -20,6 +21,7 @@ export default function InputArea({
   onContentChange,
   onNameChange,
   handleContentTypeChange,
+  isEditing,
   t,
 }: InputAreaProps) {
   const activeFields = INPUT_FIELDS[content.type as keyof typeof INPUT_FIELDS] || [];
@@ -27,9 +29,10 @@ export default function InputArea({
     <AccordionItem value="item-1">
       <AccordionTrigger>Content</AccordionTrigger>
       <AccordionContent>
-        <RadioTexts values={["url", "text", "wifi"]} value={content.type} onValueChange={handleContentTypeChange} />
-
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        {!isEditing && (
+          <RadioTexts values={["url", "text", "wifi"]} value={content.type} onValueChange={handleContentTypeChange} />
+        )}
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <InputGroup
             label={t.name.text}
             value={name}
