@@ -1,5 +1,6 @@
 "use client";
 import Radios from "@/components/elements/radio-group";
+import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { QRDesign } from "@/types/qr";
 
@@ -38,62 +39,74 @@ export default function Designer({ design, onDesignChange, t }: DesignerProps) {
   } = design;
   return (
     <>
-      <Radios
-        label={body_p}
-        type="body"
-        value={dotType}
-        onValueChange={(val) => onDesignChange("dotType", val)}
-        values={bodyShapes}
-        size="lg"
-      />
-      <div className="flex flex-wrap gap-2 items-end">
-        <Radios
-          label={body_c}
-          type="color"
-          value={bodyColor}
-          onValueChange={(val) => onDesignChange("bodyColor", val)}
-          values={bodyColors}
-          shape="circle"
-        />
-        <ColorPicker value={bodyColor} onChange={(val) => onDesignChange("bodyColor", val)} />
-      </div>
+      <AccordionItem value="item-2">
+        <AccordionTrigger>Paterns</AccordionTrigger>
+        <AccordionContent>
+          <div className="w-full flex flex-col gap-6 p-0.5">
+            <Radios
+              label={body_p}
+              type="body"
+              value={dotType}
+              onValueChange={(val) => onDesignChange("dotType", val)}
+              values={bodyShapes}
+              size="lg"
+            />
+            <Radios
+              label={eye_f}
+              type="frame"
+              value={eyeFrame}
+              onValueChange={(val) => onDesignChange("eyeFrame", val)}
+              values={frameShapes}
+            />
 
-      <div className="w-full flex flex-col gap-6 md:flex-row">
-        <Radios
-          label={eye_f}
-          type="frame"
-          value={eyeFrame}
-          onValueChange={(val) => onDesignChange("eyeFrame", val)}
-          values={frameShapes}
-        />
+            <Radios
+              label={eye_b}
+              type="ball"
+              value={eyeBall}
+              onValueChange={(val) => onDesignChange("eyeBall", val)}
+              values={ballhapes}
+            />
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="item-3">
+        <AccordionTrigger>Colors</AccordionTrigger>
+        <AccordionContent>
+          <div className="w-full flex flex-col gap-6 p-0.5">
+            <div className="flex flex-wrap gap-2 items-end">
+              <Radios
+                label={body_c}
+                type="color"
+                value={bodyColor}
+                onValueChange={(val) => onDesignChange("bodyColor", val)}
+                values={bodyColors}
+                shape="circle"
+              />
+              <ColorPicker value={bodyColor} onChange={(val) => onDesignChange("bodyColor", val)} />
+            </div>
 
-        <Radios
-          label={eye_b}
-          type="ball"
-          value={eyeBall}
-          onValueChange={(val) => onDesignChange("eyeBall", val)}
-          values={ballhapes}
-        />
-      </div>
-      <div className="flex flex-wrap gap-2 items-end">
-        <Radios
-          label={eye_c}
-          type="color"
-          value={eyeColor}
-          onValueChange={(val) => onDesignChange("eyeColor", val)}
-          values={bodyColors}
-          shape="circle"
-        />
-        <ColorPicker value={eyeColor} onChange={(val) => onDesignChange("eyeColor", val)} />
-      </div>
-      <Radios
-        label={bg_c}
-        type="color"
-        value={bgColor}
-        onValueChange={(val) => onDesignChange("bgColor", val)}
-        values={bgColors}
-        shape="circle"
-      />
+            <div className="flex flex-wrap gap-2 items-end">
+              <Radios
+                label={eye_c}
+                type="color"
+                value={eyeColor}
+                onValueChange={(val) => onDesignChange("eyeColor", val)}
+                values={bodyColors}
+                shape="circle"
+              />
+              <ColorPicker value={eyeColor} onChange={(val) => onDesignChange("eyeColor", val)} />
+            </div>
+            <Radios
+              label={bg_c}
+              type="color"
+              value={bgColor}
+              onValueChange={(val) => onDesignChange("bgColor", val)}
+              values={bgColors}
+              shape="circle"
+            />
+          </div>
+        </AccordionContent>
+      </AccordionItem>
     </>
   );
 }
