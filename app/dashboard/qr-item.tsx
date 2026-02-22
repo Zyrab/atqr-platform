@@ -35,6 +35,7 @@ import { useQRDownload } from "@/hooks/use-qr-download";
 import { useQR } from "@/context/qr-context";
 import { useQRCodeGenerator } from "@/hooks/use-qr-generator";
 import { QRContent, QRDocument } from "@/types/qr";
+import RadioTexts from "@/components/elements/radio-text";
 
 interface DashboardItemProps {
   item: QRDocument;
@@ -205,23 +206,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
               <Trash2 color="#C9404A" />
             </Button>
           </div>
-          <RadioGroup
-            className="flex gap-1 bg-muted/30 p-1 rounded-lg justify-between"
-            value={downloadFormat}
-            onValueChange={(val: any) => setDownloadFormat(val)}
-          >
-            {["png", "jpeg", "svg"].map((fmt) => (
-              <div key={fmt} className="flex-1">
-                <RadioGroupItem value={fmt} id={`${item.id}-${fmt}`} className="peer sr-only" />
-                <label
-                  htmlFor={`${item.id}-${fmt}`}
-                  className="flex items-center justify-center w-full px-2 py-1.5 text-xs font-medium rounded-md cursor-pointer transition-all peer-data-[state=checked]:bg-background peer-data-[state=checked]:text-primary peer-data-[state=checked]:shadow-sm text-muted-foreground hover:text-foreground uppercase"
-                >
-                  {fmt}
-                </label>
-              </div>
-            ))}
-          </RadioGroup>
+          <RadioTexts values={["png", "jpeg", "svg"]} value={downloadFormat} onValueChange={setDownloadFormat} />
         </div>
         <div className="flex flex-col justify-between gap-8">
           <Slider
