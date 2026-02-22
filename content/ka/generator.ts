@@ -6,6 +6,8 @@ export const generator = {
     text: { text: "ტექსტი", placeholder: "შეიყვანეთ ტექსტი აქ" },
     ssid: { text: "Wi-Fi სახელი (SSID)", placeholder: "ქსელის სახელი" },
     password: {text: "Wi-Fi პაროლი", placeholder: "პაროლი" },
+    hidden: { text:"დაფარული ქსელი"}
+
   },
   designer: {
     body_p: "ფორმის შაბლონი",

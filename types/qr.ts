@@ -4,7 +4,7 @@ export type QRCodeMatrix = boolean[][];
 
 type UrlContent = { type: 'url'; url: string };
 type TextContent = { type: 'text'; text: string };
-type WifiContent = { type: 'wifi'; ssid: string; password: string };
+type WifiContent = { type: 'wifi'; ssid: string; password: string ; hidden: boolean};
 type QrType = "static" | "dynamic"
 
 export type QRContent = UrlContent | TextContent | WifiContent;

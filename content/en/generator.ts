@@ -7,6 +7,7 @@ export const generator = {
     text:{text: "text", placeholder: "Enter your text here"},
     ssid:{ text:"Wi-Fi SSID", placeholder:"Network Name",},
     password:{ text:"Wi-Fi Password", placeholder:"password" },
+    hidden: { text:"Hidden network"}
   },
   designer:{
     body_p: "Body Pattern",

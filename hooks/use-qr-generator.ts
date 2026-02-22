@@ -18,12 +18,12 @@ function useDebouncedValue<T>(value: T, delay: number): T {
 function getQRString(content: QRContent): string | null {
   switch (content.type) {
     case 'url':
-      return content.url.trim() || null;
+      return content?.url?.trim() || null;
     case 'text':
-      return content.text.trim() || null;
+      return content?.text?.trim() || null;
     case 'wifi':
-      if (!content.ssid.trim()) return null; // SSID is required
-      return `WIFI:T:WPA;S:${content.ssid};P:${content.password};;`;
+      if (!content?.ssid?.trim()) return null; // SSID is required
+      return `WIFI:T:WPA;S:${content?.ssid};P:${content?.password};H:${content?.hidden};;`;
     default:
       return null;
   }
