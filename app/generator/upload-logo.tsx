@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Label, CheckboxLabel } from "@/components/ui/input";
 import { X, ImageIcon, Upload } from "lucide-react";
@@ -11,7 +11,6 @@ interface UploadLogoProps {
 }
 
 export default function UploadLogo({ logo, setQrData, handleImageUpload, logoBG, t }: UploadLogoProps) {
-  console.log(logoBG);
   return (
     <div>
       <Label>{t.title}</Label>
