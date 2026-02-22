@@ -4,10 +4,11 @@ export type QRCodeMatrix = boolean[][];
 
 type UrlContent = { type: 'url'; url: string };
 type TextContent = { type: 'text'; text: string };
+type DynamicContent = { type: 'dynamic'; redirect: string , url: string};
 type WifiContent = { type: 'wifi'; ssid: string; password: string ; hidden: boolean};
 type QrType = "static" | "dynamic"
 
-export type QRContent = UrlContent | TextContent | WifiContent;
+export type QRContent = UrlContent | TextContent | WifiContent |DynamicContent;
 export type ErrorCorrection = "L" | "M" | "Q" | "H";
 
 
@@ -30,6 +31,7 @@ export interface QRData {
   design: QRDesign;
   type: QrType;
   qrId?: string;
+  slug?: string
 }
 
 export interface QRDocument extends QRData {
