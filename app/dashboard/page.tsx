@@ -17,10 +17,12 @@ import { Card } from "@/components/ui/card";
 import Section from "@/components/layout/section";
 import { HeaderGroup } from "@/components/elements/heading-group";
 import { getLocale } from "@/content/getLocale";
+import { useAuth } from "@/context/auth-context";
 
 export default function DashboardGrid({ locale = "en" }: { locale?: "en" | "ka" }) {
   const router = useRouter();
   const { qrCodes, deleteQr, loading } = useQR();
+  const { userData } = useAuth();
   const t = getLocale(locale, "dashboard");
   // --- Local State ---
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,7 +69,6 @@ export default function DashboardGrid({ locale = "en" }: { locale?: "en" | "ka" 
     return items;
   }, [qrCodes, searchTerm, sortBy, filterType]);
 
-  // --- Handlers ---
   const handleCreateNew = () => {
     if (isLimitReached) {
       alert("Free limit reached! Please upgrade to create more.");
@@ -87,7 +88,6 @@ export default function DashboardGrid({ locale = "en" }: { locale?: "en" | "ka" 
 
   return (
     <Section>
-      {/* --- HEADER SECTION --- */}
       <div className="flex flex-col gap-4 w-full max-w-5xl">
         <div className="flex flex-row md:items-center justify-between gap-4">
           <div>
@@ -114,17 +114,19 @@ export default function DashboardGrid({ locale = "en" }: { locale?: "en" | "ka" 
             </Button>
           </div>
         </div>
-        <Card size="sm" width="auto">
-          <div className="flex justify-between items-center mb-2 text-sm">
-            <span className="font-medium flex items-center gap-2">
-              {isLimitReached ? t.limit_reached : t.limit_under}
-            </span>
-            <span className="text-muted-foreground">
-              {usedCount} / {MAX_FREE_QRS} {t.qr_codes}
-            </span>
-          </div>
-          <Progress value={usagePercentage} className="h-2" />
-        </Card>
+        {userData?.plan !== "paid" && (
+          <Card size="sm" width="auto">
+            <div className="flex justify-between items-center mb-2 text-sm">
+              <span className="font-medium flex items-center gap-2">
+                {isLimitReached ? t.limit_reached : t.limit_under}
+              </span>
+              <span className="text-muted-foreground">
+                {usedCount} / {MAX_FREE_QRS} {t.qr_codes}
+              </span>
+            </div>
+            <Progress value={usagePercentage} className="h-2" />
+          </Card>
+        )}
       </div>
 
       {/* --- CONTENT SECTION --- */}
