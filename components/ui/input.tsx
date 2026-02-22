@@ -67,7 +67,6 @@ function InputGroup({ label, error, id, containerClassName, className, ...props 
   const inputId = id || generatedId;
 
   return (
-    // Added 'w-full' here to ensure it tries to fill the parent width
     <div className={cn("w-full", containerClassName)}>
       {label && <Label htmlFor={inputId}>{label}</Label>}
 
@@ -91,17 +90,16 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        // Changed rounded-none to rounded-sm for better aesthetics, revert if you prefer square
-        "border-input dark:bg-input/30 data-checked:bg-primary data-checked:text-primary-foreground dark:data-checked:bg-primary data-checked:border-primary aria-invalid:aria-checked:border-primary aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 flex size-4 items-center justify-center rounded-sm border transition-colors group-has-disabled/field:opacity-50 focus-visible:ring-1 aria-invalid:ring-1 peer relative shrink-0 outline-none after:absolute after:-inset-x-3 after:-inset-y-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "peer relative flex size-4 shrink-0 items-center justify-center outline-none transition-colors border-input bg-input/10 border data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground focus-visible:ring-ring focus-visible:ring-1 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:cursor-not-allowed disabled:opacity-50 after:absolute after:-inset-x-3 after:-inset-y-2",
         className,
       )}
       {...props}
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className="[&>svg]:size-3.5 grid place-content-center text-current transition-none"
+        className="flex items-center justify-center text-current"
       >
-        <CheckIcon />
+        <CheckIcon className="size-3.5" />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );
@@ -115,15 +113,16 @@ interface CheckboxLabelProps extends React.ComponentProps<typeof CheckboxPrimiti
 }
 
 function CheckboxLabel({ label, id, containerClassName, className, ...props }: CheckboxLabelProps) {
-  // Fix: Use useId so every checkbox is unique
   const generatedId = React.useId();
   const checkboxId = id || generatedId;
 
   return (
     <div className={cn("flex items-center gap-2", containerClassName)}>
-      {/* Fix: Pass ...props so onClick/checked/etc work */}
       <Checkbox id={checkboxId} className={className} {...props} />
-      <Label htmlFor={checkboxId} className="font-normal cursor-pointer text-muted-foreground hover:text-foreground">
+      <Label
+        htmlFor={checkboxId}
+        className="font-normal cursor-pointer text-muted-foreground hover:text-foreground mb-0"
+      >
         {label}
       </Label>
     </div>
