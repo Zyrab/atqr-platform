@@ -80,6 +80,7 @@ export const saveToDashboard = async (uid: string | null, data: QRData, logo: Bl
 
   const payload = {
     ...data,
+    name: data.name || 'qr-code',
     qrId: generatedId,
     design: {
       ...data.design,
