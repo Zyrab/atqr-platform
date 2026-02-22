@@ -18,11 +18,12 @@ import AdSpace from "@/components/ui/ad-space";
 import { resizeImageToBlob } from "@/lib/qr-utils";
 import { useQRCodeGenerator } from "@/hooks/use-qr-generator";
 import { useQRDownload } from "@/hooks/use-qr-download";
-import { RadioGroupItem, RadioGroup } from "@/components/ui/radio";
 import { useQR } from "@/context/qr-context";
 import { QRData, QRContent } from "@/types/qr";
 import Designer from "./designer";
 import { getLocale } from "@/content/getLocale";
+import RadioTexts from "@/components/elements/radio-text";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 type HeaderType = {
   header: {
@@ -31,6 +32,12 @@ type HeaderType = {
   };
   locale?: "en" | "ka";
 };
+const DEFAULT_CONTENT: Record<QRContent["type"], QRContent> = {
+  url: { type: "url", url: "" },
+  text: { type: "text", text: "" },
+  wifi: { type: "wifi", ssid: "", password: "", hidden: false },
+};
+
 export default function Generator({ header, locale = "en" }: HeaderType) {
   const { user, userData } = useAuth();
   const t = getLocale(locale, "generator");
@@ -57,7 +64,6 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     },
     type: "static",
   });
-
   const [draftContent, setDraftContent] = useState(qrData.content);
   const [draftName, setDraftName] = useState(qrData.name);
 
@@ -116,7 +122,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     }
   };
 
-  const onContentChange = (field: string, value: string) => {
+  const onContentChange = (field: string, value: string | boolean) => {
     setDraftContent((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -128,9 +134,10 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     setQrData((prev) => ({ ...prev, design: { ...prev.design, [key]: value } }));
 
   const contentCheckers: Record<QRContent["type"], (content: QRContent) => boolean> = {
-    url: (content) => (content.type === "url" ? content.url.trim() !== "" : false),
-    text: (content) => (content.type === "text" ? content.text.trim() !== "" : false),
-    wifi: (content) => (content.type === "wifi" ? content.ssid.trim() !== "" || content.password.trim() !== "" : false),
+    url: (content) => (content.type === "url" ? content?.url?.trim() !== "" : false),
+    text: (content) => (content.type === "text" ? content?.text?.trim() !== "" : false),
+    wifi: (content) =>
+      content.type === "wifi" ? content?.ssid?.trim() !== "" || content?.password?.trim() !== "" : false,
   };
 
   const isContentFilled = contentCheckers[qrData.content.type](qrData.content);
@@ -153,31 +160,44 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
       await saveQr(qrData, logoBlobRef.current);
     }
   };
-
+  const handleContentTypeChange = (type: QRContent["type"]) => {
+    setDraftContent(DEFAULT_CONTENT[type]);
+  };
   return (
     <Section>
       {header ? <HeaderGroup tag="h1" header={header.title} subheading={header.subtitle} /> : null}
-
-      <div className="flex flex-col gap-4 w-full items-center md:items-stretch md:justify-center md:flex-row">
-        <Card width="2xl">
+      <div className="w-full max-w-6xl  grid grid-cols-1 gap-4  md:grid-cols-3">
+        {/* <Card size="none" width="auto" className="md:col-span-3">
+          <RadioTexts
+            values={["url", "text", "wifi"]}
+            value={draftContent.type}
+            onValueChange={handleContentTypeChange}
+          />
+        </Card> */}
+        <Card width="auto" size="sm" className="order-2 md:order-1 md:col-span-2">
           <h2 className="font-bold text-sm">{t.title}</h2>
-          <InputArea
-            content={draftContent}
-            name={draftName}
-            onContentChange={onContentChange}
-            onNameChange={onNameChange}
-            t={t.inputs}
-          />
-          <Designer design={qrData.design} onDesignChange={onDesignChange} t={t.designer} />
-          <UploadLogo
-            logo={qrData.design.logo}
-            logoBG={qrData.design.logoBG}
-            setQrData={setQrData}
-            handleImageUpload={handleImageUpload}
-            t={t.logo}
-          />
+
+          <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
+            <InputArea
+              content={draftContent}
+              name={draftName}
+              onContentChange={onContentChange}
+              onNameChange={onNameChange}
+              handleContentTypeChange={handleContentTypeChange}
+              t={t.inputs}
+            />
+
+            <Designer design={qrData.design} onDesignChange={onDesignChange} t={t.designer} />
+            <UploadLogo
+              logo={qrData.design.logo}
+              logoBG={qrData.design.logoBG}
+              setQrData={setQrData}
+              handleImageUpload={handleImageUpload}
+              t={t.logo}
+            />
+          </Accordion>
         </Card>
-        <Card width="sm">
+        <Card width="auto" className="order-1 md:order-2 md:col-span-1">
           <div
             className="aspect-square flex relative overflow-hidden transition-colors duration-300"
             style={{ backgroundColor: qrData.design.bgColor === "transparent" ? "#fff" : qrData.design.bgColor }}
@@ -202,24 +222,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
             maxLabel="High Q"
             step={100}
           />
-
-          <RadioGroup
-            className="flex gap-1 bg-muted/30 p-1 rounded-lg justify-between"
-            value={downloadFormat}
-            onValueChange={(val: any) => setDownloadFormat(val)}
-          >
-            {["png", "jpeg", "svg"].map((fmt) => (
-              <div key={fmt} className="flex-1">
-                <RadioGroupItem value={fmt} id={fmt} className="peer sr-only" />
-                <label
-                  htmlFor={fmt}
-                  className="flex items-center justify-center w-full px-2 py-1.5 text-xs font-medium rounded-md cursor-pointer transition-all peer-data-[state=checked]:bg-background peer-data-[state=checked]:text-primary peer-data-[state=checked]:shadow-sm text-muted-foreground hover:text-foreground uppercase"
-                >
-                  {fmt}
-                </label>
-              </div>
-            ))}
-          </RadioGroup>
+          <RadioTexts values={["png", "jpeg", "svg"]} value={downloadFormat} onValueChange={setDownloadFormat} />
 
           <div className="w-full flex flex-col gap-1">
             <Button onClick={handleDownload} disabled={!isContentFilled || isDownloading} variant="default">
