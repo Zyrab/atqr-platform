@@ -24,6 +24,8 @@ function getQRString(content: QRContent): string | null {
     case 'wifi':
       if (!content?.ssid?.trim()) return null; // SSID is required
       return `WIFI:T:WPA;S:${content?.ssid};P:${content?.password};H:${content?.hidden};;`;
+    case "dynamic":
+      return content?.redirect || null  
     default:
       return null;
   }
