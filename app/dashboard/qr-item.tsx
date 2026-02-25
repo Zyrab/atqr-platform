@@ -34,7 +34,7 @@ import { useQRDownload } from "@/hooks/use-qr-download";
 import { useQR } from "@/context/qr-context";
 import { useQRCodeGenerator } from "@/hooks/use-qr-generator";
 import { QRContent, QRDocument } from "@/types/qr";
-import { contentCheckers } from "@/lib/content-checker";
+import { contentCheckers, resolveQRString } from "@/lib/content-utils";
 
 interface DashboardItemProps {
   item: QRDocument;
@@ -63,19 +63,10 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
   const svgRef = useRef<SVGSVGElement | null>(null);
   const { downloadQrCode, isDownloading } = useQRDownload();
 
-  const dynmicUrl = item.slug
-    ? ({
-        type: "dynamic",
-        redirect: `https://r.atqr.app/${item.slug}`,
-        url: item.content.type === "url" ? item.content.url : "",
-      } as QRContent)
-    : item.content;
-
-  const content = item.type === "dynamic" ? dynmicUrl : item.content;
-
   const isContentFilled = contentCheckers[item.content.type](item.content);
 
-  const { matrix } = useQRCodeGenerator(content, Boolean(item.design.logo));
+  const qrValue = resolveQRString(item);
+  const { matrix } = useQRCodeGenerator(qrValue, Boolean(item.design.logo));
 
   const handleDownload = () => {
     if (!isContentFilled) return;
@@ -87,7 +78,21 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
     return dateFormatter.format(new Date(item.createdAt));
   }, [item.createdAt]);
 
-  function renderContentBadges(content: QRDocument["content"]) {
+  function renderContentBadges(item: QRDocument) {
+    const content = item.content;
+    if (item.type === "dynamic" && content.type === "url")
+      return (
+        <>
+          <Badge variant="ghost">
+            <Link2 />
+            {qrValue?.slice(0, 25) + "…"}
+          </Badge>
+          <Badge variant="ghost">
+            <CornerDownRight />
+            {content.url.slice(0, 25) + "…"}
+          </Badge>
+        </>
+      );
     switch (content.type) {
       case "url":
         return (
@@ -109,19 +114,6 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
             <Wifi />
             SSID: {content.ssid || "—"}, Password: {content.password || "—"}
           </Badge>
-        );
-      case "dynamic":
-        return (
-          <>
-            <Badge variant="ghost">
-              <Link2 />
-              {content.redirect.slice(0, 25) + "…"}
-            </Badge>
-            <Badge variant="ghost">
-              <CornerDownRight />
-              {content.url.slice(0, 25) + "…"}
-            </Badge>
-          </>
         );
       default:
         return null;
@@ -193,7 +185,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
               </Button>
             </div>
           )}
-          {renderContentBadges(content)}
+          {renderContentBadges(item)}
           <Badge variant="ghost">
             <Calendar />
             {formattedDate}
