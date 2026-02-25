@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Sun,
   Moon,
@@ -18,6 +17,13 @@ import {
   CreditCard,
   UserPlus,
   BadgeCheck,
+  QrCode,
+  Palette,
+  Image,
+  Download,
+  Edit,
+  Loader2,
+  Save,
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -38,6 +44,13 @@ const ICON_MAP = {
   user: CircleUser,
   credit_card: CreditCard,
   badge_check: BadgeCheck,
+  qr_code: QrCode,
+  palette: Palette,
+  image: Image,
+  edit: Edit,
+  download: Download,
+  loader_2: Loader2,
+  save: Save,
 } as const;
 
 type IconName = keyof typeof ICON_MAP;
@@ -49,9 +62,7 @@ interface IconsProps extends LucideProps {
 export default function Icons({ name, ...props }: IconsProps) {
   const IconComponent = ICON_MAP[name as IconName];
 
-  if (!IconComponent) {
-    return null;
-  }
+  if (!IconComponent) return null;
 
   return <IconComponent {...props} />;
 }
