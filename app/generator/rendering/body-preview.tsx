@@ -39,7 +39,15 @@ export function BodyPreview({ type }: { type: string }) {
 export function FramePreview({ type }: { type: string }) {
   const Frame = FrameRenderers[type] || FrameRenderers.square;
   return (
-    <svg viewBox="0 0 7 7" className="w-full h-full p-1 text-foreground">
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      data-prefix="fab"
+      role="img"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 7 7"
+      className="w-full h-full p-1 text-foreground"
+    >
       <Frame color={"currentColor"} />
     </svg>
   );
@@ -49,7 +57,15 @@ export function FramePreview({ type }: { type: string }) {
 export function BallPreview({ type }: { type: string }) {
   const Ball = BallRenderers[type] || BallRenderers.square;
   return (
-    <svg viewBox="0 0 7 7" className="w-full h-full p-1 text-foreground scale-200">
+    <svg
+      aria-hidden="true"
+      focusable="false"
+      data-prefix="fab"
+      role="img"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 7 7"
+      className="w-full h-full p-1 text-foreground scale-200"
+    >
       <Ball color={"currentColor"} />
     </svg>
   );
