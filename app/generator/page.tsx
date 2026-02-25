@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useDeferredValue } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
-import { Loader2, Download, Save } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,12 +19,14 @@ import { useQRCodeGenerator } from "@/hooks/use-qr-generator";
 import { useQRDownload } from "@/hooks/use-qr-download";
 import { useQR } from "@/context/qr-context";
 import { QRData, QRContent } from "@/types/qr";
-import Designer from "./designer";
 import { getLocale } from "@/content/getLocale";
 import RadioTexts from "@/components/elements/radio-text";
-import { Accordion } from "@/components/ui/accordion";
 import { CheckboxLabel } from "@/components/ui/input";
-import { contentCheckers } from "@/lib/content-checker";
+import { contentCheckers, resolveQRString } from "@/lib/content-utils";
+import EditorAccordion from "@/components/elements/accordion-editor";
+import Icons from "@/components/elements/icons";
+import ShapesDesigner from "./shapes-designer";
+import ColorsDesigner from "./colors-designer";
 
 type HeaderType = {
   header: {
@@ -34,10 +35,10 @@ type HeaderType = {
   };
   locale?: "en" | "ka";
 };
+type EditorCompKeys = "input-area" | "shapes-designer" | "upload-logo" | "colors-designer";
 const DEFAULT_CONTENT: Record<QRContent["type"], QRContent> = {
   url: { type: "url", url: "" },
   text: { type: "text", text: "" },
-  dynamic: { type: "dynamic", redirect: "", url: "" },
   wifi: { type: "wifi", ssid: "", password: "", hidden: false },
 };
 
@@ -67,8 +68,6 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     },
     type: "static",
   });
-  const [draftContent, setDraftContent] = useState(qrData.content);
-  const [draftName, setDraftName] = useState(qrData.name);
 
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -79,34 +78,12 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
       const data = getQrById(id);
       if (data) setQrData(data);
       isEditing.current = true;
-      if (data?.name) setDraftName(data.name);
-      if (data?.content) setDraftContent(data.content);
     }
   }, [id, getQrById]);
 
-  const debouncedUpdate = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    if (debouncedUpdate.current) {
-      clearTimeout(debouncedUpdate.current);
-    }
-    debouncedUpdate.current = setTimeout(() => {
-      setQrData((prev) => ({
-        ...prev,
-        content: draftContent,
-        name: draftName,
-        type: draftContent.type === "url" ? prev.type : "static",
-      }));
-    }, 300);
-  }, [draftContent, draftName]);
-
-  const dynmicUrl = qrData.slug
-    ? ({ type: "dynamic", redirect: `https://r.atqr.app/${qrData.slug}` } as QRContent)
-    : qrData.content;
-
-  const content = qrData.type === "dynamic" ? dynmicUrl : qrData.content;
-
-  const { matrix } = useQRCodeGenerator(content, Boolean(qrData.design.logo));
+  const qrValue = resolveQRString(qrData);
+  const deferredValue = useDeferredValue(qrValue);
+  const { matrix } = useQRCodeGenerator(deferredValue, Boolean(qrData.design.logo));
   const { downloadQrCode, isDownloading } = useQRDownload();
 
   const handleDownload = () => {
@@ -132,14 +109,6 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
     }
   };
 
-  const onContentChange = (field: string, value: string | boolean) => {
-    setDraftContent((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const onNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDraftName(e.target.value);
-  };
-
   const onDesignChange = (key: keyof QRData["design"], value: any) =>
     setQrData((prev) => ({ ...prev, design: { ...prev.design, [key]: value } }));
 
@@ -156,43 +125,41 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
       alert("Free plan limit reached. Upgrade to save more QR codes.");
       return;
     }
-
     if (isEditing.current) {
       if (id) await updateQr(id, qrData, logoBlobRef.current);
     } else {
       await saveQr(qrData, logoBlobRef.current);
     }
   };
-  const handleContentTypeChange = (type: QRContent["type"]) => {
-    setDraftContent(DEFAULT_CONTENT[type]);
+
+  const onTypeChange = (type: QRContent["type"]) => {
+    setQrData((prev) => ({ ...prev, content: DEFAULT_CONTENT[type] }));
   };
+
+  const editorComp = {
+    "input-area": <InputArea qrData={qrData} setQrData={setQrData} t={t.inputs} />,
+    "shapes-designer": <ShapesDesigner design={qrData.design} onDesignChange={onDesignChange} t={t.designer} />,
+    "colors-designer": <ColorsDesigner design={qrData.design} onDesignChange={onDesignChange} t={t.designer} />,
+    "upload-logo": <UploadLogo design={qrData.design} setQrData={setQrData} upload={handleImageUpload} t={t.logo} />,
+  };
+
+  const editorPanel = t.editor_panel.map((p) => ({
+    ...p,
+    icon: <Icons name={p.icon} size={18} />,
+    content: editorComp[p.comp as EditorCompKeys],
+  }));
   return (
     <Section>
       {header ? <HeaderGroup tag="h1" header={header.title} subheading={header.subtitle} /> : null}
       <div className="w-full max-w-6xl  grid grid-cols-1 gap-4  md:grid-cols-3">
+        {!isEditing.current && (
+          <Card size="none" width="auto" className="md:col-span-3">
+            <RadioTexts values={["url", "text", "wifi"]} value={qrData.content.type} onValueChange={onTypeChange} />
+          </Card>
+        )}
         <Card width="auto" size="sm" className="order-2 md:order-1 md:col-span-2">
-          <h2 className="font-bold text-sm">{t.title}</h2>
-
-          <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
-            <InputArea
-              content={draftContent}
-              name={draftName}
-              onContentChange={onContentChange}
-              onNameChange={onNameChange}
-              handleContentTypeChange={handleContentTypeChange}
-              isEditing={isEditing.current}
-              t={t.inputs}
-            />
-
-            <Designer design={qrData.design} onDesignChange={onDesignChange} t={t.designer} />
-            <UploadLogo
-              logo={qrData.design.logo}
-              logoBG={qrData.design.logoBG}
-              setQrData={setQrData}
-              handleImageUpload={handleImageUpload}
-              t={t.logo}
-            />
-          </Accordion>
+          <EditorAccordion items={editorPanel} defaultValue="content-area" />
+          <p className="font-bold text-sm mt-auto">{t.title}</p>
         </Card>
         <Card width="auto" className="order-1 md:order-2 md:col-span-1">
           <div
@@ -227,11 +194,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
               disabled={!isContentFilled || isDownloading || qrData.type === "dynamic"}
               variant="default"
             >
-              {isDownloading ? (
-                <Loader2 className="animate-spin mr-2 h-4 w-4" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
+              {isDownloading ? <Icons name="loader_2" className="animate-spin" /> : <Icons name="download" />}
               {t.download.title}
             </Button>
             <p className="text-muted-foreground text-xs max-w-240 text-center">{t.download.note}</p>
@@ -243,7 +206,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
               disabled={!isContentFilled || loading || hasReachedLimit}
               onClick={handleSaveQr}
             >
-              {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <Save className="mr-2 h-4 w-4" />}
+              {loading ? <Icons name="loader_2" className="animate-spin" /> : <Icons name="save" />}
               {user ? t.save.title : t.signin.title}
             </Button>
             <p className="text-muted-foreground text-xs max-w-240 text-center">
