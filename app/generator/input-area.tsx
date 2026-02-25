@@ -1,78 +1,72 @@
-import * as React from "react";
+import React, { Dispatch } from "react";
 import { CheckboxLabel, InputGroup } from "@/components/ui/input";
-import { QRContent } from "@/types/qr";
+import { QRContent, QRData } from "@/types/qr";
 import Icons from "@/components/elements/icons";
-import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import RadioTexts from "@/components/elements/radio-text";
 
 interface InputAreaProps {
-  content: QRContent;
-  name: string;
-  onContentChange: (field: string, value: string | boolean) => void;
-  onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleContentTypeChange: (type: QRContent["type"]) => void;
-  isEditing: boolean;
+  qrData: QRData;
+  setQrData: Dispatch<React.SetStateAction<QRData>>;
   t: any;
 }
 
-export default function InputArea({
-  content,
-  name,
-  onContentChange,
-  onNameChange,
-  handleContentTypeChange,
-  isEditing,
-  t,
-}: InputAreaProps) {
-  const activeFields = INPUT_FIELDS[content.type as keyof typeof INPUT_FIELDS] || [];
+export default function InputArea({ qrData, setQrData, t }: InputAreaProps) {
+  const activeFields = INPUT_FIELDS[qrData.content.type] || [];
+
+  const handleContentChange = (key: string, value: string | boolean) => {
+    setQrData((prev) => ({
+      ...prev,
+      content: { ...prev.content, [key]: value } as QRContent,
+    }));
+  };
+
   return (
-    <AccordionItem value="item-1">
-      <AccordionTrigger>Content</AccordionTrigger>
-      <AccordionContent>
-        {!isEditing && (
-          <RadioTexts values={["url", "text", "wifi"]} value={content.type} onValueChange={handleContentTypeChange} />
-        )}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+    <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+      <InputGroup
+        label={t.name.text}
+        value={qrData.name}
+        onChange={(e) => setQrData((prev) => ({ ...prev, name: e.target.value }))}
+        placeholder={t.name.placeholder}
+      />
+
+      {activeFields.map(({ key, icon, required, type }, i) =>
+        type !== "checkbox" ? (
           <InputGroup
-            label={t.name.text}
-            value={name}
-            onChange={(e) => onNameChange(e)}
-            placeholder={t.name.placeholder}
+            key={i}
+            label={t[key]?.text}
+            type={type}
+            value={(qrData.content as any)[key] ?? ""}
+            onChange={(e) => handleContentChange(key, e.target.value)}
+            placeholder={t[key]?.placeholder}
+            startIcon={icon ? <Icons name={icon} size={16} /> : null}
+            required={required}
           />
-          {activeFields.map(({ key, icon, requred, type }, i) =>
-            type !== "checkbox" ? (
-              <InputGroup
-                key={i}
-                label={t[key].text}
-                type={type}
-                value={(content as any)[key] || ""}
-                onChange={(e) => onContentChange(key, e.target.value)}
-                placeholder={t[key].placeholder}
-                startIcon={<Icons name={icon} size={16} />}
-                required={requred}
-              />
-            ) : (
-              <CheckboxLabel
-                key={i}
-                label={t[key].text}
-                id={key}
-                onCheckedChange={(c: boolean) => onContentChange(key, c)}
-              />
-            ),
-          )}
-        </div>
-      </AccordionContent>
-    </AccordionItem>
+        ) : (
+          <CheckboxLabel
+            key={i}
+            label={t[key]?.text}
+            id={key}
+            checked={!!(qrData.content as any)[key]}
+            onCheckedChange={(c: boolean) => handleContentChange(key, c)}
+          />
+        ),
+      )}
+    </div>
   );
 }
 
-export const INPUT_FIELDS = {
-  url: [{ key: "url", icon: "link", type: "text", requred: true }],
-  text: [{ key: "text", icon: "type", type: "text", requred: true }],
+interface FieldConfig {
+  key: string;
+  icon: string;
+  type: "text" | "checkbox" | "password";
+  required: boolean;
+}
+
+export const INPUT_FIELDS: Record<QRContent["type"], FieldConfig[]> = {
+  url: [{ key: "url", icon: "link", type: "text", required: true }],
+  text: [{ key: "text", icon: "type", type: "text", required: true }],
   wifi: [
-    { key: "ssid", icon: "wifi", type: "text", requred: true },
-    { key: "password", icon: "key_round", type: "text", requred: false },
-    { key: "hidden", icon: "", type: "checkbox", requred: false },
+    { key: "ssid", icon: "wifi", type: "text", required: true },
+    { key: "password", icon: "key_round", type: "text", required: false },
+    { key: "hidden", icon: "", type: "checkbox", required: false },
   ],
-  // email: [ { key: "email", labelKey: "email.addr", ... }, { key: "subject", ... } ]
 };
