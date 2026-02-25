@@ -7,8 +7,35 @@ export const generator = {
     text:{text: "text", placeholder: "Enter your text here"},
     ssid:{ text:"Wi-Fi SSID", placeholder:"Network Name",},
     password:{ text:"Wi-Fi Password", placeholder:"password" },
-    hidden: { text:"Hidden network"}
+    hidden: { text: "Hidden network"}
   },
+  editor_panel:[
+    {
+      id: "content",
+      title: "Add Content",
+      icon: "edit",
+      comp:"input-area"
+    },
+    {
+      id: "shapes",
+      title: "Custumize Shape",
+      icon: "qr_code",
+      comp:"shapes-designer"
+    },
+    {
+      id: "colors",
+      title: "Edit Colors",
+      icon: "palette",
+      comp:"colors-designer"
+    },
+    {
+      id: "logo-area",
+      title: "Add Branding",
+      icon: "image",
+      comp:"upload-logo"
+    },
+  ],
+  qr_types:["url","text","wifi"],
   designer:{
     body_p: "Body Pattern",
     body_c: "Body Color",

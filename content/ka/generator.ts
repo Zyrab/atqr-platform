@@ -7,8 +7,35 @@ export const generator = {
     ssid: { text: "Wi-Fi სახელი (SSID)", placeholder: "ქსელის სახელი" },
     password: {text: "Wi-Fi პაროლი", placeholder: "პაროლი" },
     hidden: { text:"დაფარული ქსელი"}
-
   },
+    editor_panel:[
+    {
+      id: "content",
+      title: "დაამატე კონტენტი",
+      icon: "edit",
+      comp:"input-area"
+    },
+    {
+      id: "shapes",
+      title: "შეარჩიე ფორმები",
+      icon: "qr_code",
+      comp:"shapes-designer"
+    },
+    {
+      id: "colors",
+      title: "შეცვალე ფერები",
+      icon: "palette",
+      comp:"colors-designer"
+    },
+    {
+      id: "logo-area",
+      title: "დაამატო ლოგო",
+      icon: "image",
+      comp:"upload-logo"
+    },
+  ],
+
+  qr_types:["url","text","wifi"],
   designer: {
     body_p: "ფორმის შაბლონი",
     body_c: "ფორმის ფერი",
