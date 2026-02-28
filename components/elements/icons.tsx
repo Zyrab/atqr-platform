@@ -24,6 +24,8 @@ import {
   Edit,
   Loader2,
   Save,
+  Upload,
+  X,
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -51,6 +53,8 @@ const ICON_MAP = {
   download: Download,
   loader_2: Loader2,
   save: Save,
+  upload: Upload,
+  x: X,
 } as const;
 
 type IconName = keyof typeof ICON_MAP;
