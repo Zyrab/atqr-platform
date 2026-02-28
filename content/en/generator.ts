@@ -4,7 +4,7 @@ export const generator = {
   inputs:{
     url:{ text: "URL", placeholder:"https://example.com"},
     name:{ text: "QR Name (optional)", placeholder: "Only used if you sign in and save" },
-    text:{text: "text", placeholder: "Enter your text here"},
+    text:{text: "Text", placeholder: "Enter your text here"},
     ssid:{ text:"Wi-Fi SSID", placeholder:"Network Name",},
     password:{ text:"Wi-Fi Password", placeholder:"password" },
     hidden: { text: "Hidden network"}
