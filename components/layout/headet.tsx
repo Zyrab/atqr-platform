@@ -83,12 +83,12 @@ export default function Header({ locale = "en" }: { locale?: "en" | "ka" }) {
 
           {user ? (
             <>
-              <Link href="/dashboard">
-                <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard">
                   <Icons name="dashboard" />
                   <span className="hidden md:block">{t.dashboard}</span>
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button size="icon" variant="ghost">
@@ -124,18 +124,18 @@ export default function Header({ locale = "en" }: { locale?: "en" | "ka" }) {
             </>
           ) : (
             <>
-              <Link href="/auth?mode=login">
-                <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/auth?mode=login">
                   <Icons name="log_in" />
                   <span className="hidden md:block">{t.log_in}</span>
-                </Button>
-              </Link>
-              <Link href="/auth?mode=register">
-                <Button size="sm">
+                </Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/auth?mode=register">
                   <Icons name="user_plus" />
                   <span className="hidden md:block">{t.sign_up}</span>
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </>
           )}
         </div>
