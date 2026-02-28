@@ -1,7 +1,7 @@
 import { RadioGroup, RadioCard } from "../ui/radio";
 import { Label } from "../ui/input";
 import { cn } from "@/lib/utils";
-import { BodyPreview, BallPreview, FramePreview, ColorPreview } from "@/app/generator/rendering/body-preview";
+import { BodyPreview, BallPreview, FramePreview, ColorPreview } from "@/components/layout/rendering/body-preview";
 
 interface RadiosProps {
   label?: string;
