@@ -27,7 +27,7 @@ export default function EditorAccordion({ items, defaultValue, className }: Edit
     >
       {items.map((item) => (
         <AccordionItem key={item.id} value={item.id} className="bg-background">
-          <AccordionTrigger className="px-4 py-3 text-lg font-bold hover:bg-muted/20 hover:no-underline transition-colors">
+          <AccordionTrigger className="px-4 py-3 text-sm font-bold hover:bg-muted/20 hover:no-underline transition-colors">
             <div className="flex items-center gap-2">
               {item.icon}
               {item.title}
