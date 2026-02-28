@@ -2,11 +2,12 @@ import { RadioGroup, RadioCard } from "../ui/radio";
 import { Label } from "../ui/input";
 import { cn } from "@/lib/utils";
 import { BodyPreview, BallPreview, FramePreview, ColorPreview } from "@/components/layout/rendering/body-preview";
+import Image from "next/image";
 
 interface RadiosProps {
   label?: string;
   value: string;
-  type: "body" | "ball" | "frame" | "color";
+  type: "body" | "ball" | "frame" | "color" | "logo";
   onValueChange: (value: string) => void;
   values: string[];
   className?: string;
@@ -24,6 +25,8 @@ function renderPreview(type: string, item: string) {
       return <FramePreview type={item} />;
     case "color":
       return <ColorPreview color={item} />;
+    case "logo":
+      return <Image src={`/images/preset-icons/${item}.webp`} alt={item} width="34" height="34" />;
     default:
       return null;
   }
