@@ -4,14 +4,14 @@ import { useState, useEffect, Suspense } from "react";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, loginGoogle } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
-import { InputGroup } from "@/components/ui/input";
+import { useAuth } from "@/context/auth-context";
+import { Card } from "@/components/ui/card";
+import InputGroup from "@/components/elements/input-group";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Mail, Lock } from "lucide-react";
 import GoogleIcon from "./google-icon";
-import { useAuth } from "@/context/auth-context";
 import Section from "@/components/layout/section";
-import { Card } from "@/components/ui/card";
 
 function AuthForm() {
   const router = useRouter();
@@ -131,16 +131,16 @@ function AuthForm() {
           {mode === "login" ? (
             <p className="text-muted-foreground">
               Don't have an account?
-              <Link href="/auth?mode=register">
-                <Button variant="link">Create one for free</Button>
-              </Link>
+              <Button variant="link" asChild>
+                <Link href="/auth?mode=register">Create one for free</Link>
+              </Button>
             </p>
           ) : (
             <p className="text-muted-foreground">
               Already have an account?
-              <Link href="/auth?mode=login">
-                <Button variant="link">Sign in</Button>
-              </Link>
+              <Button variant="link" asChild>
+                <Link href="/auth?mode=login">Sign in</Link>
+              </Button>
             </p>
           )}
         </div>
