@@ -27,9 +27,9 @@ import { Badge } from "@/components/ui/badge";
 import { HeaderGroup } from "@/components/elements/heading-group";
 import { Input } from "@/components/ui/input";
 import RadioTexts from "@/components/elements/radio-text";
+import QRCodeRenderer from "../../components/layout/renderer";
 
 // Logic & Types
-import QRCodeRenderer from "../generator/renderer";
 import { useQRDownload } from "@/hooks/use-qr-download";
 import { useQR } from "@/context/qr-context";
 import { useQRCodeGenerator } from "@/hooks/use-qr-generator";
