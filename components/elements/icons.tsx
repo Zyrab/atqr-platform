@@ -12,6 +12,7 @@ import {
   Link,
   Type,
   Wifi,
+  Trash2,
   KeyRound,
   CircleUser,
   CreditCard,
@@ -26,6 +27,12 @@ import {
   Save,
   Upload,
   X,
+  Copy,
+  ChartLine,
+  Calendar,
+  Check,
+  Link2,
+  CornerDownRight,
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -34,7 +41,9 @@ const ICON_MAP = {
   discount: BadgePercent,
   alt_location: MapPinPlus,
   link: Link,
+  url: Link2,
   type: Type,
+  text: Type,
   wifi: Wifi,
   key_round: KeyRound,
   sun: Sun,
@@ -55,6 +64,12 @@ const ICON_MAP = {
   save: Save,
   upload: Upload,
   x: X,
+  trash_2: Trash2,
+  copy: Copy,
+  chartLine: ChartLine,
+  calendar: Calendar,
+  check: Check,
+  corner_down_right: CornerDownRight,
 } as const;
 
 type IconName = keyof typeof ICON_MAP;
