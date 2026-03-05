@@ -6,11 +6,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Icons from "../elements/icons";
 import LogoIcon from "./logo";
-
-import { logoutUser } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-context";
 import { getLocale } from "@/content/getLocale";
 import { actions } from "@/lib/actions";
+import { services } from "@/lib/firebase/services";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -55,7 +54,7 @@ export default function Header({ locale = "en" }: { locale?: "en" | "ka" }) {
   };
 
   const handleLogout = async () => {
-    await logoutUser();
+    await services.auth.logout();
     router.push("/");
   };
 
