@@ -37,7 +37,7 @@ type EditorCompKeys = "input-area" | "shapes-designer" | "upload-logo" | "colors
 
 export default function Generator({ header, locale = "en" }: HeaderType) {
   const { user, userData } = useAuth();
-  const { getQrById, qrCodes, updateQr, saveQr, loading } = useQR();
+  const { getQrById, qrCodes, updateQr, saveQr, isActionLoading } = useQR();
   const t = getLocale(locale, "generator");
 
   const isEditing = useRef<boolean>(false);
@@ -67,12 +67,13 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
   const id = searchParams.get("id");
 
   useEffect(() => {
+    if (isActionLoading) return;
     if (id) {
       const data = getQrById(id);
       if (data) setQrData(data);
       isEditing.current = true;
     }
-  }, [id, getQrById]);
+  }, [id, getQrById, isActionLoading]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,7 +150,13 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
           <p className="font-bold text-sm mt-auto">{t.title}</p>
         </Card>
         <Card width="auto" className="order-1 md:order-2 md:col-span-1">
-          <Preview qrData={qrData} onSave={handleSaveQr} limitReached={hasReachedLimit} loading={loading} t={t} />
+          <Preview
+            qrData={qrData}
+            onSave={handleSaveQr}
+            limitReached={hasReachedLimit}
+            loading={isActionLoading}
+            t={t}
+          />
         </Card>
       </div>
       <p className="text-muted-foreground text-sm max-w-240 text-center">{t.footer}</p>
