@@ -2,10 +2,11 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth, getUserDoc } from "@/lib/firebase";
-import { Loader2 } from "lucide-react";
+import { auth } from "@/lib/firebase/config";
+import { services } from "@/lib/firebase/services";
 
 import { UserData } from "@/types/user-data";
+import Icons from "@/components/elements/icons";
 interface AuthContextType {
   user: User | null;
   userData: UserData | null;
@@ -14,7 +15,7 @@ interface AuthContextType {
 
 const fetchUserData = async (uid: string, retries = 5) => {
   for (let i = 0; i < retries; i++) {
-    const data = await getUserDoc(uid);
+    const data = await services.auth.getUserData(uid);
     if (data) return data;
     await new Promise((res) => setTimeout(res, 500));
   }
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         children
       ) : (
         <div className="h-screen w-full flex items-center justify-center bg-background">
-          <Loader2 className="animate-spin h-10 w-10 text-primary" />
+          <Icons name="loader_2" className="animate-spin h-10 w-10 text-primary" />
         </div>
       )}
     </AuthContext.Provider>
