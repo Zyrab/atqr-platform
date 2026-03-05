@@ -40,10 +40,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
   const gridSize = matrix.length;
   const totalSize = gridSize + padding * 2;
 
-  const logoBlockSize = useMemo(
-    () => (logo ? Math.floor(gridSize * logoSizeRatio) + 2 : 0),
-    [gridSize, logo, logoSizeRatio],
-  );
+  const logoBlockSize = logo ? Math.floor(gridSize * logoSizeRatio) + 2 : 0;
 
   const dataPath = useMemo(() => {
     if (!gridSize) return null;
@@ -122,4 +119,4 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
   );
 };
 
-export default React.memo(QRCodeRenderer);
+export default QRCodeRenderer;
