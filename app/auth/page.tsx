@@ -1,17 +1,21 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, loginGoogle } from "@/lib/firebase";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/auth-context";
-import { Card } from "@/components/ui/card";
-import InputGroup from "@/components/elements/input-group";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+
 import { Loader2, Mail, Lock } from "lucide-react";
-import GoogleIcon from "./google-icon";
+import { useAuth } from "@/context/auth-context";
+import { useSafeAction } from "@/hooks/use-safe-action";
+import { services } from "@/lib/firebase/services";
+
 import Section from "@/components/layout/section";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import InputGroup from "@/components/elements/input-group";
+
+import GoogleIcon from "./google-icon";
+import Icons from "@/components/elements/icons";
 
 function AuthForm() {
   const router = useRouter();
@@ -21,8 +25,8 @@ function AuthForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const { runAction, loading } = useSafeAction();
 
   useEffect(() => {
     if (user) router.push("/dashboard");
@@ -30,32 +34,24 @@ function AuthForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      if (mode === "login") {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-      router.push("/dashboard");
-    } catch (err: any) {
-      const message = err.message || "An error occurred";
-      setError(message.replace("Firebase: ", ""));
-    } finally {
-      setLoading(false);
-    }
+    await runAction(
+      async () => {
+        if (mode === "login") return await services.auth.login(email, password);
+        else if (password !== confirmPassword) throw new Error("Passwords do not match");
+        return await services.auth.register(email, password);
+      },
+      {
+        successMsg: mode === "login" ? "Welcome back!" : "Account created successfully!",
+        onSuccess: () => router.push("/dashboard"),
+      },
+    );
   };
 
   const handleGoogleLogin = async () => {
-    setError("");
-    try {
-      await loginGoogle();
-      router.push("/dashboard");
-    } catch (err: any) {
-      setError("Google sign in failed");
-    }
+    await runAction(services.auth.loginG, {
+      successMsg: "Signed in with Google",
+      onSuccess: () => router.push("/dashboard"),
+    });
   };
 
   return (
@@ -91,7 +87,7 @@ function AuthForm() {
               label="Email"
               type="email"
               placeholder="name@example.com"
-              startIcon={<Mail size={16} />}
+              startIcon={<Icons name="mail" size="16" />}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -101,7 +97,7 @@ function AuthForm() {
               label="Password"
               type="password"
               placeholder="Password"
-              startIcon={<Lock size={16} />}
+              startIcon={<Icons name="lock" size="16" />}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -111,17 +107,15 @@ function AuthForm() {
                 label="Confirm Password"
                 type="password"
                 placeholder="Password"
-                startIcon={<Lock size={16} />}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                startIcon={<Icons name="lock" size="16" />}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             )}
 
-            {error && <p className="text-destructive text-sm font-medium">{error}</p>}
-
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {loading ? <Icons name="loader_2" className="animate-spin" /> : null}
               {mode === "login" ? "Sign in" : "Create account"}
             </Button>
           </form>
