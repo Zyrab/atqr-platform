@@ -1,71 +1,27 @@
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { startTrial, getMonthlyPro,getCustumerPortalLink } from "./stripe-service";
+import { services } from "./firebase/services";
 import type React from "react";
 
 export type ActionContext = {
   generatorRef?: React.RefObject<HTMLDivElement | null>;
   router?: AppRouterInstance;
-  setLoading?: (loading: boolean) => void;
 };
 
-export const actions = {
+type ActionFn = (ctx: ActionContext) => Promise<any> | void;
+
+export const actions:Record<string, ActionFn> = {
   scroll_to_generator: ({ generatorRef }: ActionContext) => {
     generatorRef?.current?.scrollIntoView({
       behavior: "smooth",
       block: "start",
     });
   },
-
-  go_to_login: ({ router }: ActionContext) => {
-    router?.push("/auth?mode=login");
-  },
-  go_to_generator: ({ router }: ActionContext) => {
-    router?.push("/generator");
-  },
-
-  go_to_pricing: ({ router }: ActionContext) => {
-    router?.push("/pricing");
-  },
-
-  start_trial: async ({ router,setLoading }: ActionContext) => {
-    try {
-      setLoading?.(true);
-      await startTrial();
-      // Redirect to generator or dashboard after successful trial activation
-      router?.push("/generator");
-    } catch (error) {
-      // Errors are already logged in firebase-functions.ts
-      // You could add a toast notification call here
-    } finally {
-      setLoading?.(false);
-    }
-  },
-
-  /**
-   * Initiates the Stripe Checkout process for the Pro plan.
-   */
-  get_monthly_pro: async ({ setLoading }: ActionContext) => {
-    try {
-      setLoading?.(true);
-      await getMonthlyPro();
-      // Note: getMonthlyPro handles the window.location.href redirect internally
-    } catch (error) {
-      // Error handling logic
-    } finally {
-      setLoading?.(false);
-    }
-  },
-  manage_subscription: async ({ setLoading }: ActionContext) => {
-    try {
-      setLoading?.(true);
-      await getCustumerPortalLink();
-      // Note: getMonthlyPro handles the window.location.href redirect internally
-    } catch (error) {
-      // Error handling logic
-    } finally {
-      setLoading?.(false);
-    }
-  },
+  go_to_login: ({ router }: ActionContext) => router?.push("/auth?mode=login"),
+  go_to_generator: ({ router }: ActionContext) => router?.push("/generator"),
+  go_to_pricing: ({ router }: ActionContext) => router?.push("/pricing"),
+  start_trial:services.stripe.startTrial,
+  get_monthly_pro: services.stripe.checkout,
+  manage_subscription: services.stripe.portal,
 } as const;
 
 export type ActionKey = keyof typeof actions;
