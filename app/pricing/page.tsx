@@ -1,36 +1,48 @@
 "use client";
 import { useState } from "react";
-import { HeaderGroup } from "@/components/elements/heading-group";
+import { useRouter } from "next/navigation";
+import { useSafeAction } from "@/hooks/use-safe-action";
+
+import { getLocale } from "@/content/getLocale";
+import { ActionKey, actions } from "@/lib/actions";
+
 import Section from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getLocale } from "@/content/getLocale";
-import { ActionKey, actions } from "@/lib/actions";
-import { CircleCheck, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { HeaderGroup } from "@/components/elements/heading-group";
 import AccordionGroup from "@/components/elements/accordion-group";
+import Icons from "@/components/elements/icons";
 
 type PricingItem = {
   title: string;
   items: string[];
   button: {
     label: string;
-    action: string; // keep as string for translation; cast in component
+    action: string;
   };
 };
 
 export default function Pricing({ locale = "en" }: { locale?: "en" | "ka" }) {
   const { title, subtitle, faq, footer, content, unsure } = getLocale(locale, "pricing");
-  const [loading, setLoading] = useState<Partial<Record<ActionKey, boolean>>>({});
+  const { runAction, loading } = useSafeAction();
+  const [activeKey, setActiveKey] = useState<ActionKey | null>(null);
   const router = useRouter();
 
-  const handleAction = (action: ActionKey) => {
-    actions[action]?.({
-      router,
-      setLoading: (isLoading: boolean) => setLoading((prev) => ({ ...prev, [action]: isLoading })),
-    });
-  };
+  const handleAction = async (key: ActionKey) => {
+    const actionFn = actions[key];
+    if (!actionFn) return;
 
+    setActiveKey(key);
+
+    await runAction(async () => actionFn({ router }), {
+      requireAuth: true,
+      onSuccess: () => {
+        if (key === "start_trial") router.push("/generator");
+      },
+    });
+
+    setActiveKey(null);
+  };
   return (
     <>
       <Section>
@@ -38,7 +50,7 @@ export default function Pricing({ locale = "en" }: { locale?: "en" | "ka" }) {
         <div className="flex flex-col justify-center md:flex-row gap-6 w-full">
           {content.map(({ title, items, button }: PricingItem, i: number) => {
             const key = button.action as ActionKey;
-            const isLoading = !!loading[key];
+            const isLoading = loading && activeKey === key;
 
             return (
               <Card key={i} width="xs" size="sm">
@@ -46,13 +58,13 @@ export default function Pricing({ locale = "en" }: { locale?: "en" | "ka" }) {
                 <ul className="w-full h-full">
                   {items.map((item: string) => (
                     <li key={item} className="flex gap-1 items-center mt-1">
-                      <CircleCheck color="#5CE639" size={16} />
+                      <Icons name="circle_check" color="#5CE639" size={16} />
                       <p className="text-foreground-muted text-sm">{item}</p>
                     </li>
                   ))}
                 </ul>
                 <Button size="sm" variant="default" disabled={isLoading} onClick={() => handleAction(key)}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isLoading && <Icons name="loader_2" className="animate-spin" />}
                   {isLoading ? "Loading..." : button.label}
                 </Button>
               </Card>
