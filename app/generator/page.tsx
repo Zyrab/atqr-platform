@@ -145,7 +145,7 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
           </Card>
         )}
         <Card width="auto" size="sm" className="order-2 md:order-1 md:col-span-2">
-          <EditorAccordion items={editorPanel} defaultValue="content-area" />
+          <EditorAccordion items={editorPanel} defaultValue="content" />
           <p className="font-bold text-sm mt-auto">{t.title}</p>
         </Card>
         <Card width="auto" className="order-1 md:order-2 md:col-span-1">
