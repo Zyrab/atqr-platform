@@ -8,3 +8,8 @@ export const getPaths = (uid: string) => ({
   qrDoc: (id: string) => doc(db, 'users', uid, 'qrcodes', id),
   storageLogo: (id: string) => ref(storage, `users/${uid}/qrcodes/${id}/logo.png`)
 });
+
+export const getRootPaths = {
+  qrStat: (slug: string) => doc(db, "qrStats", slug),
+  qrSlug: (slug: string) => doc(db, "qrSlugs", slug),
+};
