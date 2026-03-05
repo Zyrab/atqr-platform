@@ -1,16 +1,17 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { useAuth } from "@/context/auth-context";
-import { fetchHistory, deleteQrCode, updateQrCode, saveToDashboard, uploadQrLogo } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+import { useSafeAction } from "@/hooks/use-safe-action";
+import { services } from "@/lib/firebase/services";
 
 import { QRDocument, QRData } from "@/types/qr";
 
 interface QRContextType {
   qrCodes: QRDocument[];
   loading: boolean;
-  error: string | null;
+  isActionLoading: boolean;
   refreshQRCodes: () => Promise<void>;
   deleteQr: (id: string) => Promise<void>;
   updateQr: (id: string, data: Partial<QRData>, logo: Blob | null) => Promise<void>;
@@ -22,62 +23,55 @@ const QRContext = createContext<QRContextType | undefined>(undefined);
 
 export function QRProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const { runAction, loading: isActionLoading } = useSafeAction();
   const router = useRouter();
-  const uid = user?.uid || null;
   const [qrCodes, setQrCodes] = useState<QRDocument[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState<boolean>(true);
 
-  const loadData = useCallback(async () => {
+  const loadData = async (silent = false) => {
     if (!user) {
       setQrCodes([]);
+      setIsInitialLoading(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
+    if (!silent) setIsInitialLoading(true);
+
     try {
-      const data = await fetchHistory(user);
+      const data = await services.qr.fetch(user.uid);
       setQrCodes(data as QRDocument[]);
-    } catch (err: any) {
-      console.error("Failed to load QR codes", err);
-      setError(err.message || "Failed to load history");
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const deleteQr = async (id: string) => {
-    if (!uid) return;
-    const previousCodes = [...qrCodes];
-    setQrCodes((prev) => prev.filter((item) => item.id !== id));
-
-    try {
-      await deleteQrCode(uid, id);
     } catch (err) {
-      console.error("Delete failed", err);
-      setQrCodes(previousCodes);
-      throw err;
+      console.error("Failed to load QR codes", err);
+    } finally {
+      setIsInitialLoading(false);
     }
   };
 
-  const updateQr = async (id: string, updates: Partial<QRData>, logo: Blob | null) => {
-    if (!uid) return;
+  useEffect(() => {
+    loadData();
+  }, [user]);
 
+  const deleteQr = async (id: string) => {
+    const previousCodes = [...qrCodes];
+
+    setQrCodes((prev) => prev.filter((item) => item.id !== id));
+
+    await runAction(() => services.qr.delete(user!.uid, id), {
+      requireAuth: true,
+      successMsg: "QR Code deleted",
+      onError: () => setQrCodes(previousCodes),
+    });
+  };
+
+  const updateQr = async (id: string, updates: Partial<QRData>, logo: Blob | null) => {
     setQrCodes((prev) => prev.map((item) => (item.id === id ? { ...item, ...updates } : item)));
 
-    try {
-      await updateQrCode(uid, id, updates, logo);
-      router.push("/dashboard");
-    } catch (err) {
-      console.error("Update failed", err);
-      loadData();
-      throw err;
-    }
+    await runAction(() => services.qr.update(user!.uid, id, updates, logo), {
+      requireAuth: true,
+      successMsg: "QR Code updated",
+      onSuccess: () => router.push("/dashboard"),
+      onError: () => loadData(true),
+    });
   };
 
   const saveQr = async (qrData: QRData, logo: Blob | null) => {
@@ -85,30 +79,26 @@ export function QRProvider({ children }: { children: React.ReactNode }) {
       router.push("/auth?mode=login");
       return;
     }
-
-    setLoading(true);
-    try {
-      await saveToDashboard(uid, qrData, logo);
-      loadData();
-      router.push("/dashboard");
-    } catch (err) {
-      console.error(err);
-      alert("Error saving. If you used a custom logo, it might be too large.");
-    } finally {
-      setLoading(false);
-    }
+    await runAction(() => services.qr.save(user!.uid, qrData, logo), {
+      requireAuth: true,
+      successMsg: "QR Code saved to dashboard!",
+      onSuccess: () => {
+        loadData();
+        router.push("/dashboard");
+      },
+    });
   };
+
   const getQrById = (id: string) => {
     return qrCodes.find((item) => item.id === id);
   };
-
   return (
     <QRContext.Provider
       value={{
         qrCodes,
-        loading,
-        error,
-        refreshQRCodes: loadData,
+        loading: isInitialLoading,
+        isActionLoading,
+        refreshQRCodes: () => loadData(true),
         deleteQr,
         updateQr,
         getQrById,
