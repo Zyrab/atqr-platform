@@ -65,15 +65,26 @@ export default function Generator({ header, locale = "en" }: HeaderType) {
 
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
+  const mode = searchParams.get("mode");
 
   useEffect(() => {
     if (isActionLoading) return;
-    if (id) {
-      const data = getQrById(id);
-      if (data) setQrData(data);
+    if (!id) return;
+    const data = getQrById(id);
+    if (!data) return;
+    if (mode === "duplicate") {
+      setQrData({
+        ...data,
+        name: `${data.name} (Copy)`,
+        content: { type: "url", url: "" },
+        type: "static",
+      });
+      isEditing.current = false;
+    } else {
+      setQrData(data);
       isEditing.current = true;
     }
-  }, [id, getQrById, isActionLoading]);
+  }, [id, mode, getQrById, isActionLoading]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
