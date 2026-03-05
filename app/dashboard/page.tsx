@@ -77,14 +77,8 @@ export default function DashboardGrid({ locale = "en" }: { locale?: "en" | "ka" 
     router.push("/generator");
   };
 
-  const handleEdit = (id: string) => {
-    router.push(`/generator?id=${id}`);
-  };
-
-  const handleDuplicate = (item: any) => {
-    // Duplicate logic would go here (likely calling a context function)
-    console.log("Duplicate", item);
-  };
+  const handleEdit = (id: string) => router.push(`/generator?id=${id}`);
+  const handleDuplicate = (id: string) => router.push(`/generator?id=${id}&mode=duplicate`);
 
   return (
     <Section>
