@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 type DotType = string;
 type EyeType = string;
 export type QRCodeMatrix = boolean[][];
@@ -45,4 +47,12 @@ export interface QRCodeRendererProps {
   size?: number;
   svgRef?: React.RefObject<SVGSVGElement | null>;
   design: QRDesign
+}
+
+
+export interface QRStat {
+  scans: number;
+  lastScannedAt: Timestamp | null,
+  countries: {},
+  os: {}
 }
