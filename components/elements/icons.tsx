@@ -33,6 +33,9 @@ import {
   Check,
   Link2,
   CornerDownRight,
+  Lock,
+  Mail,
+  CircleCheck,
 } from "lucide-react";
 
 const ICON_MAP = {
@@ -70,6 +73,9 @@ const ICON_MAP = {
   calendar: Calendar,
   check: Check,
   corner_down_right: CornerDownRight,
+  lock: Lock,
+  mail: Mail,
+  circle_check: CircleCheck,
 } as const;
 
 type IconName = keyof typeof ICON_MAP;
