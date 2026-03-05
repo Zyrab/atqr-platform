@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import QRCode from "qrcode";
 import type { QRCodeMatrix, ErrorCorrection } from '@/types/qr';
 
@@ -21,28 +20,22 @@ export function chooseErrorCorrection({ length = 0, hasLogo }: DecideECInput): E
   return "M";
 }
 
-export const useQRCodeGenerator =  (value: string | null, hasLogo: boolean) => {
+export const useQRCodeGenerator = (value: string | null, hasLogo: boolean) => {
+  if (!value) return { matrix: [] };
 
+  const ecLevel = chooseErrorCorrection({ length: value.length, hasLogo });
 
-  const matrix: QRCodeMatrix = useMemo(() => {
-    if (!value) return [];
+  try {
+    const qrRaw = QRCode.create(value, { errorCorrectionLevel: ecLevel });
+    const size = qrRaw.modules.size;
+    const data = qrRaw.modules.data;
 
-    const ecLevel = chooseErrorCorrection({ length: value?.length || 0, hasLogo});
-    
+    const matrix: QRCodeMatrix = Array.from({ length: size }, (_, y) =>
+      Array.from({ length: size }, (_, x) => data[y * size + x] === 1)
+    );
 
-    try {
-      
-      const qrRaw = QRCode.create(value, { errorCorrectionLevel: ecLevel } );
-      const size = qrRaw.modules.size;
-      const data = qrRaw.modules.data;
-
-      const result: boolean[][] = Array.from({ length: size }, (_, y) => Array.from({ length: size }, (_, x) => data[y * size + x] === 1) );
-
-      return result;
-    } catch {
-      return [];
-    }
-  }, [value, hasLogo]);
-
-  return { matrix };
+    return { matrix };
+  } catch {
+    return { matrix: [] };
+  }
 };
