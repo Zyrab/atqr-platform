@@ -25,7 +25,7 @@ interface DashboardItemProps {
   item: QRDocument;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
-  onDuplicate: (item: QRDocument) => void;
+  onDuplicate: (id: string) => void;
   t: any;
 }
 
@@ -125,7 +125,7 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
                 <Icons name="chartLine" />
               </Button>
             )}
-            <Button variant="ghost" size="lg" onClick={() => onDuplicate(item)}>
+            <Button variant="ghost" size="lg" onClick={() => onDuplicate(item.id)}>
               <Icons name="copy" />
             </Button>
             <Button variant="ghost" size="lg" onClick={() => onDelete(item.id)}>
