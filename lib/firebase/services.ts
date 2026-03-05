@@ -1,9 +1,9 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
 import { getDoc, query, orderBy, limit, getDocs, doc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-import { getPaths } from "./utils";
+import { getPaths, getRootPaths } from "./utils";
 import { googleProvider, auth, httpsCallable, functions } from "./config";
-import type { QRData } from '@/types/qr';
+import type { QRData, QRStat } from '@/types/qr';
 import { UserData } from "@/types/user-data";
 
 export const services = {
@@ -38,6 +38,10 @@ export const services = {
           updatedAt: data.updatedAt?.toDate?.().toISOString() ?? data.updatedAt,
         };
       });
+    },
+    fetchStat:async (slug:string) => {
+      const snap = await getDoc(getRootPaths.qrStat(slug));
+      return snap.exists() ? snap.data() as QRStat : null;
     },
     save: async (uid: string, data: QRData, logoBlob: Blob | null) => {
       const newRef = doc(getPaths(uid).qrCol);
