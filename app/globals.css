@@ -70,11 +70,11 @@
   --ring: #eb5e28;
 
   /* Data Visualization */
-  --chart-1: #eb5e28;
-  --chart-2: #252422;
-  --chart-3: #403d39;
-  --chart-4: #ccc5b9;
-  --chart-5: #e6e2dd;
+  --chart-1: #3b82f6; /* blue */
+  --chart-2: #10b981; /* emerald */
+  --chart-3: #a855f7; /* purple */
+  --chart-4: #f59e0b; /* amber */
+  --chart-5: #06b6d4; /* cyan */
 }
 
 .dark {
@@ -105,11 +105,11 @@
   --ring: #eb5e28;
 
   /* Data Visualization */
-  --chart-1: #eb5e28;
-  --chart-2: #fffcf2;
-  --chart-3: #ccc5b9;
-  --chart-4: #403d39;
-  --chart-5: #252422;
+  --chart-1: #60a5fa; /* blue */
+  --chart-2: #34d399; /* emerald */
+  --chart-3: #c084fc; /* purple */
+  --chart-4: #fbbf24; /* amber */
+  --chart-5: #22d3ee; /* cyan */
 }
 
 @keyframes scan {
