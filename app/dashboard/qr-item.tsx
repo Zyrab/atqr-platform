@@ -20,6 +20,7 @@ import { QRContent, QRDocument } from "@/types/qr";
 import { contentCheckers, resolveQRString } from "@/lib/content-utils";
 import Icons from "@/components/elements/icons";
 import { ContentBadge } from "./content-badge";
+import Link from "next/link";
 
 interface DashboardItemProps {
   item: QRDocument;
@@ -121,8 +122,10 @@ export default function DashboardItem({ item, onEdit, onDelete, onDuplicate, t }
               <Icons name="palette" />
             </Button>
             {isDynamic && (
-              <Button variant="ghost" size="lg">
-                <Icons name="chartLine" />
+              <Button variant="ghost" size="lg" asChild>
+                <Link href={`/analytics?slug=${item.slug}`}>
+                  <Icons name="chartLine" />
+                </Link>
               </Button>
             )}
             <Button variant="ghost" size="lg" onClick={() => onDuplicate(item.id)}>
