@@ -43,8 +43,8 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
   const totalSize = gridSize + padding * 2;
 
   const baseLogoSize = logo ? Math.floor(gridSize * logoSizeRatio) + 2 : 0;
-  const logoWidth = logoStyle === "wide" ? Math.floor(baseLogoSize * 2.5) : baseLogoSize;
-  const logoHeight = logoStyle === "wide" ? Math.max(2, Math.floor(baseLogoSize * 0.4)) : baseLogoSize;
+  const logoWidth = logoStyle === "wide" ? Math.floor(baseLogoSize * 2.4) : baseLogoSize;
+  const logoHeight = logoStyle === "wide" ? Math.max(3, Math.floor(baseLogoSize * 0.8)) : baseLogoSize;
 
   const dataPath = useMemo(() => {
     if (!gridSize) return null;
@@ -111,10 +111,10 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
         {logo && (
           <image
             href={logo}
-            x={gridSize / 2 - logoWidth / 2}
-            y={gridSize / 2 - logoHeight / 2}
-            width={logoWidth}
-            height={logoHeight}
+            x={gridSize / 2 - (logoWidth * 1.1) / 2}
+            y={gridSize / 2 - (logoHeight * 1.1) / 2}
+            width={logoWidth * 1.1}
+            height={logoHeight * 1.1}
             preserveAspectRatio="xMidYMid meet"
           />
         )}
