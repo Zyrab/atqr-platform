@@ -4,6 +4,8 @@ import { CheckboxLabel } from "@/components/ui/input";
 import Icons from "@/components/elements/icons";
 import { QRData, QRDesign } from "@/types/qr";
 import Radios from "@/components/elements/radio-group";
+import RadioTexts from "@/components/elements/radio-text";
+
 interface UploadLogoProps {
   design: QRDesign;
   setQrData: Dispatch<React.SetStateAction<QRData>>;
@@ -53,6 +55,18 @@ export default function UploadLogo({ design, setQrData, upload, t }: UploadLogoP
           }))
         }
       />
+      {design.logo && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">{t.style || "Logo Style"}</p>
+          <RadioTexts
+            values={["square", "wide"]}
+            value={design.logoStyle || "square"}
+            onValueChange={(val) =>
+              setQrData((prev: any) => ({ ...prev, design: { ...prev.design, logoStyle: val } }))
+            }
+          />
+        </div>
+      )}
       <CheckboxLabel
         label={t.rmv_bg}
         checked={design.logoBG}

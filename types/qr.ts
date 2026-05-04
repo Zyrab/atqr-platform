@@ -22,7 +22,7 @@ export interface QRDesign {
   bgColor?: string;
   logo?: string | null;
   logoBG: boolean;
-  logoStyle?: 'square' | 'circle';
+  logoStyle?: 'square' | 'circle' | 'wide';
   logoSizeRatio?: number;
 }
 

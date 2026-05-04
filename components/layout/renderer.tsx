@@ -8,18 +8,19 @@ const NEIGHBOR_DEPENDENT_SHAPES = new Set(["fluid", "soft", "blobH", "blobV", "e
 const isFinderPattern = (x: number, y: number, size: number) =>
   (x < 7 && y < 7) || (x > size - 8 && y < 7) || (x < 7 && y > size - 8);
 
-const isLogoZone = (x: number, y: number, size: number, logoSize: number, logoBG: boolean) => {
-  if (!logoSize) return false;
+const isLogoZone = (x: number, y: number, size: number, logoWidth: number, logoHeight: number, logoBG: boolean) => {
+  if (!logoWidth || !logoHeight) return false;
   if (logoBG) return false;
   const center = Math.floor(size / 2);
-  const half = Math.ceil(logoSize / 2);
-  return x >= center - half && x <= center + half && y >= center - half && y <= center + half;
+  const halfWidth = Math.ceil(logoWidth / 2);
+  const halfHeight = Math.ceil(logoHeight / 2);
+  return x >= center - halfWidth && x <= center + halfWidth && y >= center - halfHeight && y <= center + halfHeight;
 };
-const isDarkAt = (matrix: QRCodeMatrix, x: number, y: number, size: number, logoBlockSize: number, logoBG: boolean) => {
+const isDarkAt = (matrix: QRCodeMatrix, x: number, y: number, size: number, logoWidth: number, logoHeight: number, logoBG: boolean) => {
   if (x < 0 || y < 0 || x >= size || y >= size) return 0;
   if (!matrix[y]?.[x]) return 0;
   if (isFinderPattern(x, y, size)) return 0;
-  if (isLogoZone(x, y, size, logoBlockSize, logoBG)) return 0;
+  if (isLogoZone(x, y, size, logoWidth, logoHeight, logoBG)) return 0;
 
   return 1;
 };
@@ -31,6 +32,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
     eyeBall = "square",
     logo = null,
     logoBG = false,
+    logoStyle = "square",
     bodyColor = "#000000",
     eyeColor = "#000000",
     bgColor = "transparent",
@@ -40,7 +42,9 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
   const gridSize = matrix.length;
   const totalSize = gridSize + padding * 2;
 
-  const logoBlockSize = logo ? Math.floor(gridSize * logoSizeRatio) + 2 : 0;
+  const baseLogoSize = logo ? Math.floor(gridSize * logoSizeRatio) + 2 : 0;
+  const logoWidth = logoStyle === "wide" ? Math.floor(baseLogoSize * 2.5) : baseLogoSize;
+  const logoHeight = logoStyle === "wide" ? Math.max(2, Math.floor(baseLogoSize * 0.4)) : baseLogoSize;
 
   const dataPath = useMemo(() => {
     if (!gridSize) return null;
@@ -54,25 +58,25 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
       for (let x = 0; x < gridSize; x++) {
         if (!matrix[y][x]) continue;
         if (isFinderPattern(x, y, gridSize)) continue;
-        if (isLogoZone(x, y, gridSize, logoBlockSize, logoBG)) continue;
+        if (isLogoZone(x, y, gridSize, logoWidth, logoHeight, logoBG)) continue;
 
         let neighbors = undefined;
 
         if (needsNeighbors) {
-          const top = isDarkAt(matrix, x, y - 1, gridSize, logoBlockSize, logoBG);
-          const bottom = isDarkAt(matrix, x, y + 1, gridSize, logoBlockSize, logoBG);
-          const left = isDarkAt(matrix, x - 1, y, gridSize, logoBlockSize, logoBG);
-          const right = isDarkAt(matrix, x + 1, y, gridSize, logoBlockSize, logoBG);
+          const top = isDarkAt(matrix, x, y - 1, gridSize, logoWidth, logoHeight, logoBG);
+          const bottom = isDarkAt(matrix, x, y + 1, gridSize, logoWidth, logoHeight, logoBG);
+          const left = isDarkAt(matrix, x - 1, y, gridSize, logoWidth, logoHeight, logoBG);
+          const right = isDarkAt(matrix, x + 1, y, gridSize, logoWidth, logoHeight, logoBG);
 
           neighbors = { top, bottom, left, right };
 
           if (dotType === "extraFluid") {
             neighbors = {
               ...neighbors,
-              topLeft: isDarkAt(matrix, x - 1, y - 1, gridSize, logoBlockSize, logoBG),
-              topRight: isDarkAt(matrix, x + 1, y - 1, gridSize, logoBlockSize, logoBG),
-              bottomLeft: isDarkAt(matrix, x - 1, y + 1, gridSize, logoBlockSize, logoBG),
-              bottomRight: isDarkAt(matrix, x + 1, y + 1, gridSize, logoBlockSize, logoBG),
+              topLeft: isDarkAt(matrix, x - 1, y - 1, gridSize, logoWidth, logoHeight, logoBG),
+              topRight: isDarkAt(matrix, x + 1, y - 1, gridSize, logoWidth, logoHeight, logoBG),
+              bottomLeft: isDarkAt(matrix, x - 1, y + 1, gridSize, logoWidth, logoHeight, logoBG),
+              bottomRight: isDarkAt(matrix, x + 1, y + 1, gridSize, logoWidth, logoHeight, logoBG),
             };
           }
         }
@@ -82,7 +86,7 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
     }
 
     return elements;
-  }, [matrix, gridSize, dotType, logoBlockSize, bodyColor, size, logoBG]);
+  }, [matrix, gridSize, dotType, logoWidth, logoHeight, bodyColor, size, logoBG]);
 
   if (!gridSize) return null;
 
@@ -107,10 +111,10 @@ const QRCodeRenderer: React.FC<QRCodeRendererProps> = ({ matrix = [], size = 300
         {logo && (
           <image
             href={logo}
-            x={gridSize / 2 - logoBlockSize / 2}
-            y={gridSize / 2 - logoBlockSize / 2}
-            width={logoBlockSize}
-            height={logoBlockSize}
+            x={gridSize / 2 - logoWidth / 2}
+            y={gridSize / 2 - logoHeight / 2}
+            width={logoWidth}
+            height={logoHeight}
             preserveAspectRatio="xMidYMid meet"
           />
         )}
